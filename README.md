@@ -3,7 +3,7 @@
 # YooKassa SDK
 A library that will allow you to create smart payments using the YooKassa service
 
-## Initialize API
+## Initialize instance
 The main class through which we will work with the YooKassa API
 ```java
 private static final YooKassa YOO_KASSA = YooKassa.create(
