@@ -19,4 +19,11 @@ public class YooRequest {
 	public RequestType getType() {
 		return type;
 	}
+
+	public enum RequestMethod {
+
+		GET,
+		POST,
+		DELETE
+	}
 }

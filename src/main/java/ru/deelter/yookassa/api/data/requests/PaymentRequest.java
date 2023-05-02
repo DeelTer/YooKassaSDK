@@ -1,22 +1,28 @@
 package ru.deelter.yookassa.api.data.requests;
 
+import com.google.gson.JsonElement;
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import ru.deelter.yookassa.api.data.Amount;
+import ru.deelter.yookassa.api.exceptions.EmptyBuilderException;
 
 public class PaymentRequest implements IYooRequestData {
 
 	private final Amount amount;
 	private final ConfirmationType confirmation;
 	private final String description;
+	@SerializedName("metadata")
+	private final JsonElement metadata;
 	private final boolean capture;
 
-	public PaymentRequest(@NotNull Amount amount, @NotNull ConfirmationType confirmation, @NotNull String description, boolean capture) {
+	public PaymentRequest(@NotNull Amount amount, @NotNull ConfirmationType confirmation, @NotNull String description, JsonElement metadata, boolean capture) {
 		this.amount = amount;
 		this.confirmation = confirmation;
 		this.capture = capture;
 		this.description = description;
+		this.metadata = metadata;
 	}
 
 	@Contract(pure = true)
@@ -24,7 +30,16 @@ public class PaymentRequest implements IYooRequestData {
 		amount = builder.amount;
 		confirmation = builder.confirmation;
 		description = builder.description;
+		metadata = builder.metadata;
 		capture = builder.capture;
+	}
+
+	public static @NotNull PaymentRequest create(@NotNull Amount amount, @NotNull String redirectUrl, @NotNull String description, @Nullable JsonElement metaData) {
+		return new PaymentRequest(amount, new ConfirmationType(redirectUrl), description, metaData, true);
+	}
+
+	public static @NotNull PaymentRequest create(@NotNull Amount amount, @NotNull String redirectUrl, @NotNull String description) {
+		return create(amount, redirectUrl, description, null);
 	}
 
 	@Contract(value = " -> new", pure = true)
@@ -37,13 +52,9 @@ public class PaymentRequest implements IYooRequestData {
 		builder.amount = copy.getAmount();
 		builder.confirmation = copy.getConfirmation();
 		builder.description = copy.getDescription();
+		builder.metadata = copy.getMetadata();
 		builder.capture = copy.isCapture();
 		return builder;
-	}
-
-	@Contract("_, _, _ -> new")
-	public static @NotNull PaymentRequest create(@NotNull Amount amount, @NotNull String redirectUrl, @NotNull String description) {
-		return new PaymentRequest(amount, new ConfirmationType(redirectUrl), description, true);
 	}
 
 	public Amount getAmount() {
@@ -56,6 +67,10 @@ public class PaymentRequest implements IYooRequestData {
 
 	public String getDescription() {
 		return description;
+	}
+
+	public JsonElement getMetadata() {
+		return metadata;
 	}
 
 	public boolean isCapture() {
@@ -87,10 +102,12 @@ public class PaymentRequest implements IYooRequestData {
 	}
 
 	public static final class Builder {
+
 		private Amount amount;
 		private ConfirmationType confirmation;
 		private String description;
-		private boolean capture = true;
+		private JsonElement metadata;
+		private boolean capture;
 
 		private Builder() {
 		}
@@ -107,9 +124,8 @@ public class PaymentRequest implements IYooRequestData {
 			return this;
 		}
 
-		@NotNull
-		public Builder redirect(@NotNull String url) {
-			this.confirmation = new ConfirmationType(url);
+		public Builder redirect(@NotNull String redirectUrl) {
+			this.confirmation = new ConfirmationType(redirectUrl);
 			return this;
 		}
 
@@ -120,13 +136,24 @@ public class PaymentRequest implements IYooRequestData {
 		}
 
 		@NotNull
+		public Builder metadata(@NotNull JsonElement metadata) {
+			this.metadata = metadata;
+			return this;
+		}
+
+		@NotNull
 		public Builder capture(boolean capture) {
 			this.capture = capture;
 			return this;
 		}
 
+		public boolean isEmpty() {
+			return amount == null && confirmation == null && description == null && metadata == null;
+		}
+
 		@NotNull
 		public PaymentRequest build() {
+			if (isEmpty()) throw new EmptyBuilderException();
 			return new PaymentRequest(this);
 		}
 	}

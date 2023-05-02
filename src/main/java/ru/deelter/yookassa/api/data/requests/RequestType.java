@@ -2,6 +2,7 @@ package ru.deelter.yookassa.api.data.requests;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import ru.deelter.yookassa.api.data.requests.YooRequest.RequestMethod;
 import ru.deelter.yookassa.api.exceptions.BadRequestException;
 
 public enum RequestType {
