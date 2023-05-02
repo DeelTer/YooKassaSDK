@@ -1,4 +1,4 @@
-<img align="right" src="https://media.discordapp.net/attachments/973891514021314560/1011723930781888562/book.png" height="140" width="140">
+<img align="right" src="https://sun6-23.userapi.com/s/v1/ig2/uGmISl3elBXZi_RPAtK7NX82UeCZGt1lsx2JixfjIqHfUMjLxFHFTkkGshLzVRFppxesDUT89gi7ucMjS1JShrgm.jpg" height="140" width="140">
 
 # YooKassa SDK
 A library that will allow you to create smart payments using the YooKassa service
