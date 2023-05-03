@@ -8,7 +8,15 @@ import ru.deelter.yookassa.api.data.collections.PaymentList;
 import ru.deelter.yookassa.api.data.collections.RefundList;
 import ru.deelter.yookassa.api.data.collections.WebhookList;
 import ru.deelter.yookassa.api.data.requests.*;
-import ru.deelter.yookassa.api.events.YooKassaEvent;
+import ru.deelter.yookassa.api.data.requests.payments.PaymentCreateRequest;
+import ru.deelter.yookassa.api.data.requests.payments.PaymentGetRequest;
+import ru.deelter.yookassa.api.data.requests.payments.PaymentListRequest;
+import ru.deelter.yookassa.api.data.requests.refunds.RefundCreateRequest;
+import ru.deelter.yookassa.api.data.requests.refunds.RefundGetRequest;
+import ru.deelter.yookassa.api.data.requests.refunds.RefundListRequest;
+import ru.deelter.yookassa.api.data.requests.webhooks.WebhookCreateRequest;
+import ru.deelter.yookassa.api.data.requests.webhooks.WebhookDeleteRequest;
+import ru.deelter.yookassa.api.data.requests.webhooks.WebhookListRequest;
 import ru.deelter.yookassa.api.exceptions.BadRequestException;
 import ru.deelter.yookassa.api.exceptions.UnspecifiedShopInformation;
 import ru.deelter.yookassa.utils.JsonUtil;
@@ -22,8 +30,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.UUID;
-
-import static ru.deelter.yookassa.api.data.requests.RequestType.*;
 
 public class YooKassa {
 
@@ -48,57 +54,67 @@ public class YooKassa {
 		return token;
 	}
 
-	public Payment createPayment(@NotNull PaymentRequest request) throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return parseResponse(Payment.class, PAYMENT_CREATE.createRequest(), request);
+	public Payment createPayment(@NotNull PaymentCreateData data) throws UnspecifiedShopInformation, BadRequestException, IOException {
+		return parseResponse(Payment.class, new PaymentCreateRequest(data));
 	}
 
 	public Payment createPayment(@NotNull Amount amount, @NotNull String description, @NotNull String redirectUrl) throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return createPayment(PaymentRequest.create(amount, redirectUrl, description));
+		return createPayment(PaymentCreateData.create(amount, redirectUrl, description));
 	}
 
 	public Payment getPayment(@NotNull UUID uuid) throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return parseResponse(Payment.class, PAYMENT_GET.createRequest(uuid), null);
+		return parseResponse(Payment.class, new PaymentGetRequest(uuid));
+	}
+
+	public PaymentList getPayments(@NotNull PaymentListRequest request) throws UnspecifiedShopInformation, BadRequestException, IOException {
+		return parseResponse(PaymentList.class, request);
 	}
 
 	public PaymentList getPayments() throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return parseResponse(PaymentList.class, PAYMENT_GET_ALL.createRequest(), null);
+		return getPayments(PaymentListRequest.builder().build());
 	}
 
-	public Refund createRefund(@NotNull UUID paymentIdentifier, @NotNull Amount amount) throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return parseResponse(Refund.class, REFUND_CREATE.createRequest(), new RefundRequest(amount, paymentIdentifier));
+	public Refund createRefund(@NotNull RefundCreateData data) throws UnspecifiedShopInformation, BadRequestException, IOException {
+		return parseResponse(Refund.class, new RefundCreateRequest(data));
+	}
+
+	public Refund createRefund(@NotNull UUID paymentId, @NotNull Amount amount) throws UnspecifiedShopInformation, BadRequestException, IOException {
+		return createRefund(new RefundCreateData(amount, paymentId));
 	}
 
 	public Refund getRefund(@NotNull UUID uuid) throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return parseResponse(Refund.class, REFUND_GET.createRequest(uuid), null);
+		return parseResponse(Refund.class, new RefundGetRequest(uuid));
 	}
 
-	public RefundList getRefunds() throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return parseResponse(RefundList.class, REFUNDS_GET.createRequest(), null);
+	public RefundList getRefunds(@NotNull RefundListRequest request) throws UnspecifiedShopInformation, BadRequestException, IOException {
+		return parseResponse(RefundList.class, request);
 	}
 
-	public Webhook createWebhook(@NotNull YooKassaEvent event, @NotNull String url) throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return parseResponse(Webhook.class, WEBHOOK_CREATE.createRequest(), new WebhookRequest(event, url));
+	public Webhook createWebhook(@NotNull WebhookCreateData data) throws UnspecifiedShopInformation, BadRequestException, IOException {
+		return parseResponse(Webhook.class, new WebhookCreateRequest(data));
 	}
 
 	public void deleteWebhook(@NotNull UUID uuid) throws UnspecifiedShopInformation, BadRequestException, IOException {
-		parseResponse(null, WEBHOOK_DELETE.createRequest(uuid), null);
+		parseResponse(null, new WebhookDeleteRequest(uuid));
 	}
 
-	public WebhookList getWebhooks() throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return parseResponse(WebhookList.class, WEBHOOK_GET_ALL.createRequest(), null);
+	public WebhookList getWebhooks(WebhookListRequest request) throws UnspecifiedShopInformation, BadRequestException, IOException {
+		return parseResponse(WebhookList.class, request);
 	}
 
-	private <T extends IYooObject> @Nullable T parseResponse(@Nullable Class<T> yooClazz, @NotNull YooRequest request, @Nullable IYooRequestData requestData) throws IOException, UnspecifiedShopInformation, BadRequestException {
+	private <T extends IYooObject> @Nullable T parseResponse(@Nullable Class<T> yooClazz, @NotNull YooRequest request) throws IOException, UnspecifiedShopInformation, BadRequestException {
 		if (shopId == 0 || token == null)
 			throw new UnspecifiedShopInformation();
 
+		System.out.println(request.getUrl());
 		HttpURLConnection connection = (HttpURLConnection) new URL(request.getUrl()).openConnection();
-		connection.setRequestMethod(request.getType().getMethod().name());
+		connection.setRequestMethod(request.getMethod().name());
 
 		byte[] message = (shopId + ":" + token).getBytes(StandardCharsets.UTF_8);
 		String basicAuth = DatatypeConverter.printBase64Binary(message);
 		connection.setRequestProperty("Authorization", "Basic " + basicAuth);
 
+		IYooRequestData requestData = request.getData();
 		if (requestData != null) {
 			connection.setRequestProperty("Idempotence-Key", UUID.randomUUID().toString());
 			connection.setRequestProperty("Content-Type", "application/json");
@@ -111,6 +127,7 @@ public class YooKassa {
 			writer.close();
 			connection.getOutputStream().close();
 		}
+		System.out.println(JsonUtil.toJson(request));
 
 		boolean success = connection.getResponseCode() / 100 == 2;
 		InputStream responseStream = success ? connection.getInputStream() : connection.getErrorStream();

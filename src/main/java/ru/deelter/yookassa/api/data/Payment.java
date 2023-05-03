@@ -141,6 +141,10 @@ public class Payment implements IYooObject {
 			this.url = confirmUrl;
 		}
 
+		public ConfirmationType(@NotNull String confirmUrl) {
+			this.url = confirmUrl;
+		}
+
 		public String getType() {
 			return type;
 		}

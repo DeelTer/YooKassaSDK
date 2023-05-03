@@ -6,13 +6,13 @@ import ru.deelter.yookassa.api.data.Amount;
 
 import java.util.UUID;
 
-public class RefundRequest implements IYooRequestData {
+public class RefundCreateData implements IYooRequestData {
 
 	private final Amount amount;
 	@SerializedName("payment_id")
 	private final UUID paymentId;
 
-	public RefundRequest(@NotNull Amount amount, @NotNull UUID paymentId) {
+	public RefundCreateData(@NotNull Amount amount, @NotNull UUID paymentId) {
 		this.amount = amount;
 		this.paymentId = paymentId;
 	}

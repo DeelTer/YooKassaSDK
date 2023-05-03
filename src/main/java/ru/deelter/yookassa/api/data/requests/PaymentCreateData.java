@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import ru.deelter.yookassa.api.data.Amount;
 import ru.deelter.yookassa.api.exceptions.EmptyBuilderException;
 
-public class PaymentRequest implements IYooRequestData {
+public class PaymentCreateData implements IYooRequestData {
 
 	private final Amount amount;
 	private final ConfirmationType confirmation;
@@ -17,7 +17,7 @@ public class PaymentRequest implements IYooRequestData {
 	private final JsonElement metadata;
 	private final boolean capture;
 
-	public PaymentRequest(@NotNull Amount amount, @NotNull ConfirmationType confirmation, @NotNull String description, JsonElement metadata, boolean capture) {
+	public PaymentCreateData(@NotNull Amount amount, @NotNull ConfirmationType confirmation, @NotNull String description, JsonElement metadata, boolean capture) {
 		this.amount = amount;
 		this.confirmation = confirmation;
 		this.capture = capture;
@@ -26,7 +26,7 @@ public class PaymentRequest implements IYooRequestData {
 	}
 
 	@Contract(pure = true)
-	private PaymentRequest(@NotNull Builder builder) {
+	private PaymentCreateData(@NotNull Builder builder) {
 		amount = builder.amount;
 		confirmation = builder.confirmation;
 		description = builder.description;
@@ -34,11 +34,11 @@ public class PaymentRequest implements IYooRequestData {
 		capture = builder.capture;
 	}
 
-	public static @NotNull PaymentRequest create(@NotNull Amount amount, @NotNull String redirectUrl, @NotNull String description, @Nullable JsonElement metaData) {
-		return new PaymentRequest(amount, new ConfirmationType(redirectUrl), description, metaData, true);
+	public static @NotNull PaymentCreateData create(@NotNull Amount amount, @NotNull String redirectUrl, @NotNull String description, @Nullable JsonElement metaData) {
+		return new PaymentCreateData(amount, new ConfirmationType(redirectUrl), description, metaData, true);
 	}
 
-	public static @NotNull PaymentRequest create(@NotNull Amount amount, @NotNull String redirectUrl, @NotNull String description) {
+	public static @NotNull PaymentCreateData create(@NotNull Amount amount, @NotNull String redirectUrl, @NotNull String description) {
 		return create(amount, redirectUrl, description, null);
 	}
 
@@ -47,7 +47,7 @@ public class PaymentRequest implements IYooRequestData {
 		return new Builder();
 	}
 
-	public static @NotNull Builder builder(@NotNull PaymentRequest copy) {
+	public static @NotNull Builder builder(@NotNull PaymentCreateData copy) {
 		Builder builder = new Builder();
 		builder.amount = copy.getAmount();
 		builder.confirmation = copy.getConfirmation();
@@ -119,7 +119,7 @@ public class PaymentRequest implements IYooRequestData {
 		}
 
 		@NotNull
-		public Builder confirmation(@NotNull PaymentRequest.ConfirmationType confirmation) {
+		public Builder confirmation(@NotNull PaymentCreateData.ConfirmationType confirmation) {
 			this.confirmation = confirmation;
 			return this;
 		}
@@ -152,9 +152,9 @@ public class PaymentRequest implements IYooRequestData {
 		}
 
 		@NotNull
-		public PaymentRequest build() {
+		public PaymentCreateData build() {
 			if (isEmpty()) throw new EmptyBuilderException();
-			return new PaymentRequest(this);
+			return new PaymentCreateData(this);
 		}
 	}
 }

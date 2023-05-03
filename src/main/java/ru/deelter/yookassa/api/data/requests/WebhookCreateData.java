@@ -6,12 +6,12 @@ import ru.deelter.yookassa.api.events.YooKassaEvent;
 
 import java.lang.reflect.Type;
 
-public class WebhookRequest implements IYooRequestData, JsonSerializer<WebhookRequest>, JsonDeserializer<WebhookRequest> {
+public class WebhookCreateData implements IYooRequestData, JsonSerializer<WebhookCreateData>, JsonDeserializer<WebhookCreateData> {
 
 	private final YooKassaEvent event;
 	private final String url;
 
-	public WebhookRequest(YooKassaEvent event, String url) {
+	public WebhookCreateData(YooKassaEvent event, String url) {
 		this.event = event;
 		this.url = url;
 	}
@@ -25,16 +25,16 @@ public class WebhookRequest implements IYooRequestData, JsonSerializer<WebhookRe
 	}
 
 	@Override
-	public WebhookRequest deserialize(@NotNull JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
+	public WebhookCreateData deserialize(@NotNull JsonElement jsonElement, Type type, JsonDeserializationContext jsonDeserializationContext) throws JsonParseException {
 		JsonObject data = jsonElement.getAsJsonObject();
-		return new WebhookRequest(
+		return new WebhookCreateData(
 				YooKassaEvent.getByName(data.get("event").getAsString()),
 				data.get("url").getAsString()
 		);
 	}
 
 	@Override
-	public JsonElement serialize(WebhookRequest webhookRequest, Type type, JsonSerializationContext jsonSerializationContext) {
+	public JsonElement serialize(WebhookCreateData webhookCreateData, Type type, JsonSerializationContext jsonSerializationContext) {
 		JsonObject data = new JsonObject();
 		data.addProperty("event", event.getName());
 		data.addProperty("url", url);
