@@ -21,13 +21,13 @@ import ru.deelter.yookassa.api.exceptions.BadRequestException;
 import ru.deelter.yookassa.api.exceptions.UnspecifiedShopInformation;
 import ru.deelter.yookassa.utils.JsonUtil;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -110,7 +110,7 @@ public class YooKassa {
 		connection.setRequestMethod(request.getMethod().name());
 
 		byte[] message = (shopId + ":" + token).getBytes(StandardCharsets.UTF_8);
-		String basicAuth = DatatypeConverter.printBase64Binary(message);
+		String basicAuth = Base64.getEncoder().encodeToString(message);
 		connection.setRequestProperty("Authorization", "Basic " + basicAuth);
 
 		IYooRequestData requestData = request.getData();
