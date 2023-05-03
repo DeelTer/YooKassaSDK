@@ -3,7 +3,7 @@
 # YooKassa SDK
 A library that will allow you to create smart payments using the YooKassa service
 
-## Initialize API
+## Initialize instance
 The main class through which we will work with the YooKassa API
 ```java
 private static final YooKassa YOO_KASSA = YooKassa.create(
@@ -15,12 +15,12 @@ private static final YooKassa YOO_KASSA = YooKassa.create(
 ```java
 public static Payment createPayment() throws IOException {
 	return YOO_KASSA.createPayment(
-			PaymentRequest.builder()
-					.amount(new Amount(BigDecimal.valueOf(100), Currency.RUB))
-					.description("Buy a coffee")
-					.redirect("https://github.com/deelter")
-					.capture(true)
-					.build()
+		PaymentRequest.builder()
+				.amount(new Amount(BigDecimal.valueOf(100), Currency.RUB))
+				.description("Buy a coffee")
+				.redirect("https://github.com/deelter")
+				.capture(true)
+				.build()
 	);
 }
 ```
