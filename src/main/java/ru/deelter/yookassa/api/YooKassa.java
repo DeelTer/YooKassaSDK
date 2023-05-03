@@ -106,7 +106,6 @@ public class YooKassa {
 		if (shopId == 0 || token == null)
 			throw new UnspecifiedShopInformation();
 
-		System.out.println(request.getUrl());
 		HttpURLConnection connection = (HttpURLConnection) new URL(request.getUrl()).openConnection();
 		connection.setRequestMethod(request.getMethod().name());
 
@@ -127,7 +126,6 @@ public class YooKassa {
 			writer.close();
 			connection.getOutputStream().close();
 		}
-		System.out.println(JsonUtil.toJson(request));
 
 		boolean success = connection.getResponseCode() / 100 == 2;
 		InputStream responseStream = success ? connection.getInputStream() : connection.getErrorStream();
