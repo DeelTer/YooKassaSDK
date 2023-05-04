@@ -15,8 +15,8 @@ private static final YooKassa YOO_KASSA = YooKassa.create(
 ```java
 public static Payment createPayment() throws IOException {
 	return YOO_KASSA.createPayment(
-		PaymentRequest.builder()
-				.amount(new Amount(BigDecimal.valueOf(100), Currency.RUB))
+		PaymentCreateData.builder()
+				.amount(Amount.from(100, Currency.RUB))
 				.description("Buy a coffee")
 				.redirect("https://github.com/deelter")
 				.capture(true)
@@ -34,5 +34,43 @@ public static Payment getPayment(@NotNull UUID paymentId) throws IOException {
 ```java
 public static boolean isSuccess(@NotNull UUID paymentId) throws IOException {
 	return YOO_KASSA.getPayment(paymentId).getStatus().isSuccess();
+}
+```
+
+### Payment: receipts
+#### Receipt customer
+The buyer (client) must be registered in the object of the receipt
+```java
+public static Customer createCustomer(String email, String phone) {
+	return Customer.builder()
+		.email(email)
+		.phone(phone)
+		.build();
+}
+```
+#### Receipt items 
+The receipt object can contain either one or several items
+```java
+public static ReceiptItem createReceiptItem() {
+	return ReceiptItem.builder()
+		.description("Serious hat")
+		.amount(Amount.from(50, Currency.RUB))
+		.quantity(1)
+		.vatCode(1)
+		.build();
+}
+```
+### Receipt integration
+```java
+public static Payment createPaymentWithReceipt(Receipt receipt) throws IOException {
+	return YOO_KASSA.createPayment(
+		PaymentCreateData.builder()
+			.amount(Amount.from(100, Currency.RUB))
+			.description("Buy a coffee")
+			.redirect("https://github.com/deelter")
+			.capture(true)
+			.receipt(receipt)
+			.build()
+	);
 }
 ```
