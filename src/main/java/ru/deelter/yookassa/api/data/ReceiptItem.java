@@ -20,7 +20,7 @@ import ru.deelter.yookassa.api.exceptions.EmptyRequiredFieldsException;
 /**
  * <a href="https://yookassa.ru/developers/payment-acceptance/scenario-extensions/receipts/54fz/parameters-values">Parameters documentation</a>
  */
-public class ReceiptItem {
+public class ReceiptItem implements IYooObject {
 
 	private final String description;
 	private final Amount amount;

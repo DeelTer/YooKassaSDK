@@ -12,7 +12,10 @@ public class CustomerUtil {
 	}
 
 	public static @NotNull String formatPhone(@NotNull String number) {
-		return number.replace("-", "").trim();
+		return number.replace("-", "")
+				.replace(" ", "")
+				.replace("+", "")
+				.trim();
 	}
 
 	public static boolean isValidEmail(@NotNull String email) {
