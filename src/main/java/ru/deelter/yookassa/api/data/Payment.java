@@ -32,37 +32,24 @@ import java.util.UUID;
 }
  */
 
-
 public class Payment implements IYooObject {
 
-	private final UUID id;
-	private final PaymentStatus status;
-	private final boolean paid;
-	private final Amount amount;
-	private final ConfirmationType confirmation;
+	private UUID id;
+	private PaymentStatus status;
+	private boolean paid;
+	private Amount amount;
+	private ConfirmationType confirmation;
 	@SerializedName("created_at")
-	private final Date createdAt;
-	private final String description;
-	private final JsonElement metadata;
-	private final RecipientType recipient;
-	private final boolean refundable;
-	private final boolean test;
-	private final String redirectUrl;
-
-	public Payment(UUID id, PaymentStatus status, boolean paid, Amount amount, ConfirmationType confirmation, Date createdAt, String description, JsonElement metadata, RecipientType recipient, boolean refundable, boolean test, String redirectUrl) {
-		this.id = id;
-		this.status = status;
-		this.paid = paid;
-		this.amount = amount;
-		this.confirmation = confirmation;
-		this.createdAt = createdAt;
-		this.description = description;
-		this.metadata = metadata;
-		this.recipient = recipient;
-		this.refundable = refundable;
-		this.test = test;
-		this.redirectUrl = redirectUrl;
-	}
+	private Date createdAt;
+	@SerializedName("expires_at")
+	private Date expiresAt;
+	private String description;
+	private JsonElement metadata;
+	private RecipientType recipient;
+	private Receipt receipt;
+	private boolean refundable;
+	private boolean test;
+	private String redirectUrl;
 
 	public UUID getId() {
 		return id;
@@ -100,6 +87,10 @@ public class Payment implements IYooObject {
 		return recipient;
 	}
 
+	public Receipt getReceipt() {
+		return receipt;
+	}
+
 	public boolean isRefundable() {
 		return refundable;
 	}
@@ -112,22 +103,8 @@ public class Payment implements IYooObject {
 		return redirectUrl;
 	}
 
-	@Override
-	public String toString() {
-		return "Payment{" +
-				"id=" + id +
-				", status=" + status +
-				", paid=" + paid +
-				", amount=" + amount +
-				", confirmation=" + confirmation +
-				", createdAt=" + createdAt +
-				", description='" + description + '\'' +
-				", metadata=" + metadata +
-				", recipient=" + recipient +
-				", refundable=" + refundable +
-				", test=" + test +
-				", redirectUrl='" + redirectUrl + '\'' +
-				'}';
+	public Date getExpiresAt() {
+		return expiresAt;
 	}
 
 	public static class ConfirmationType {

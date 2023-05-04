@@ -19,16 +19,16 @@ public class WebhookListRequest extends YooRequest {
 		status = builder.status;
 	}
 
+	public static Builder builder() {
+		return new Builder();
+	}
+
 	@Override
 	public String getUrlParameters() {
 		String params = "?limit=" + limit + "&";
 		if (status != null)
 			params += "status=" + status;
 		return params;
-	}
-
-	public static Builder builder() {
-		return new Builder();
 	}
 
 	public static final class Builder {
