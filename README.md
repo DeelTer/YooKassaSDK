@@ -1,4 +1,4 @@
-<img align="right" src="https://imgur.com/Mu7nPnY" height="140" width="140">
+<img align="right" src="https://i.imgur.com/Mu7nPnY.png" height="140" width="140">
 
 # YooKassa SDK
 A library that will allow you to create smart payments using the YooKassa service
