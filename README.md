@@ -16,11 +16,11 @@ private static final YooKassa YOO_KASSA = YooKassa.create(
 public static Payment createPayment() throws IOException {
 	return YOO_KASSA.createPayment(
 		PaymentCreateData.builder()
-				.amount(Amount.from(100, Currency.RUB))
-				.description("Buy a coffee")
-				.redirect("https://github.com/deelter")
-				.capture(true)
-				.build()
+			.amount(Amount.from(100, Currency.RUB))
+			.description("Buy a coffee")
+			.redirect("https://github.com/deelter")
+			.capture(true)
+			.build()
 	);
 }
 ```
