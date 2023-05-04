@@ -24,21 +24,19 @@ public static Payment createPayment() throws IOException {
 	);
 }
 ```
-## Payment: get information
+## Payment information
 ```java
 public static Payment getPayment(@NotNull UUID paymentId) throws IOException {
 	return YOO_KASSA.getPayment(paymentId);
 }
-```
-### Check status
-```java
+
+// Get payment status
 public static boolean isSuccess(@NotNull UUID paymentId) throws IOException {
-	return YOO_KASSA.getPayment(paymentId).getStatus().isSuccess();
+	return getPayment(paymentId).getStatus().isSuccess();
 }
 ```
-
-### Payment: receipts
-#### Receipt customer
+### Receipts
+#### Customer
 The buyer (client) must be registered in the object of the receipt
 ```java
 public static Customer createCustomer(String email, String phone) {
@@ -48,7 +46,7 @@ public static Customer createCustomer(String email, String phone) {
 		.build();
 }
 ```
-#### Receipt items 
+#### Items 
 The receipt object can contain either one or several items
 ```java
 public static ReceiptItem createReceiptItem() {
@@ -65,8 +63,8 @@ public static ReceiptItem createReceiptItem() {
 public static Payment createPaymentWithReceipt(Receipt receipt) throws IOException {
 	return YOO_KASSA.createPayment(
 		PaymentCreateData.builder()
-			.amount(Amount.from(100, Currency.RUB))
-			.description("Buy a coffee")
+			.amount(Amount.from(50, Currency.RUB))
+			.description("Serious chest")
 			.redirect("https://github.com/deelter")
 			.capture(true)
 			.receipt(receipt)
