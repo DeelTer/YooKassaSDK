@@ -3,7 +3,7 @@
 # YooKassa SDK
 A library that will allow you to create smart payments using the YooKassa service
 
-## Initialize instance
+## API Initialization
 The main class through which we will work with the YooKassa API
 ```java
 private static final YooKassa YOO_KASSA = YooKassa.create(
@@ -11,7 +11,7 @@ private static final YooKassa YOO_KASSA = YooKassa.create(
 		"yourTokenHere"
 );
 ```
-## Payment: creation
+## Payment creation
 ```java
 public static Payment createPayment() throws IOException {
 	return YOO_KASSA.createPayment(
@@ -71,4 +71,27 @@ public static Payment createPaymentWithReceipt(Receipt receipt) throws IOExcepti
 			.build()
 	);
 }
+```
+## Download
+### Maven
+```xml
+<repository>
+    <id>jitpack.io</id>
+    <url>https://jitpack.io</url>
+</repository>
+
+<dependency>
+    <groupId>com.github.DeelTer</groupId>
+    <artifactId>YooKassaSDK</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+### Gradle
+```gradle
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+	dependencies {
+	        implementation 'com.github.DeelTer:YooKassaSDK:1.0.0'
+	}
 ```
