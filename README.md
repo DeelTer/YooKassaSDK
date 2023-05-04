@@ -88,10 +88,10 @@ public static Payment createPaymentWithReceipt(Receipt receipt) throws IOExcepti
 ```
 ### Gradle
 ```gradle
-    repositories {
-        maven { url 'https://jitpack.io' }
-    }
-	dependencies {
-	        implementation 'com.github.DeelTer:YooKassaSDK:1.0.0'
-	}
+repositories {
+    maven { url 'https://jitpack.io' }
+}
+dependencies {
+        implementation 'com.github.DeelTer:YooKassaSDK:1.0.0'
+}
 ```
