@@ -26,16 +26,17 @@ public static Payment createPayment() throws IOException {
 ```
 ## Payment information
 ```java
-public static Payment getPayment(@NotNull UUID paymentId) throws IOException {
+public static Payment getPayment(UUID paymentId) throws IOException {
 	return YOO_KASSA.getPayment(paymentId);
 }
 
 // Get payment status
-public static boolean isSuccess(@NotNull UUID paymentId) throws IOException {
+public static boolean isSuccess(UUID paymentId) throws IOException {
 	return getPayment(paymentId).getStatus().isSuccess();
 }
 ```
 ### Receipts
+It is worth noting that this function requires the connection of autopayments on the YooKassa website
 #### Customer
 The buyer (client) must be registered in the object of the receipt
 ```java
