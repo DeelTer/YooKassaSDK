@@ -3,7 +3,7 @@
 # YooKassa SDK
 A library that will allow you to create smart payments using the YooKassa service
 
-## Initialize instance
+## API Initialization
 The main class through which we will work with the YooKassa API
 ```java
 private static final YooKassa YOO_KASSA = YooKassa.create(
@@ -11,7 +11,7 @@ private static final YooKassa YOO_KASSA = YooKassa.create(
 		"yourTokenHere"
 );
 ```
-## Payment: creation
+## Payment creation
 ```java
 public static Payment createPayment() throws IOException {
 	return YOO_KASSA.createPayment(
@@ -30,14 +30,14 @@ public static Payment getPayment(@NotNull UUID paymentId) throws IOException {
 	return YOO_KASSA.getPayment(paymentId);
 }
 
-// Get payment status
+// Is the payment successful 
 public static boolean isSuccess(@NotNull UUID paymentId) throws IOException {
 	return getPayment(paymentId).getStatus().isSuccess();
 }
 ```
 ### Receipts
 #### Customer
-The buyer (client) must be registered in the object of the receipt
+The client must be registered in the object of receipt. Remember, you must enable the function of auto-sending receipts to tax service on the website to use this section
 ```java
 public static Customer createCustomer(String email, String phone) {
 	return Customer.builder()
@@ -58,7 +58,7 @@ public static ReceiptItem createReceiptItem() {
 		.build();
 }
 ```
-### Receipt integration
+### Integration
 ```java
 public static Payment createPaymentWithReceipt(Receipt receipt) throws IOException {
 	return YOO_KASSA.createPayment(
