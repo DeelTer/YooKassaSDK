@@ -92,7 +92,7 @@ public static Payment createPaymentWithReceipt(Receipt receipt)throws IOExceptio
 ### Refund creation
 
 ```java
-public static Refund refund(Payment payment, Amount amount) throws IOException {
+public static Refund createRefund(Payment payment, Amount amount) throws IOException {
 	return YOO_KASSA.createRefund(RefundCreateData.from(payment,amount));
 }
 ```
