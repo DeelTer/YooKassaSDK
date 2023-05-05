@@ -36,7 +36,7 @@ public static Payment getPayment(UUID paymentId) throws IOException {
 	return YOO_KASSA.getPayment(paymentId);
 }
 
-// Is payment status
+// Is payment status success
 public static boolean isSuccess(UUID paymentId) throws IOException {
 	return getPayment(paymentId).getStatus().isSuccess();
 }
