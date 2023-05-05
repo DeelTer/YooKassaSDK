@@ -15,12 +15,12 @@ package ru.deelter.yookassa.data.impl;
 
 import com.google.gson.annotations.SerializedName;
 import org.jetbrains.annotations.NotNull;
-import ru.deelter.yookassa.data.IYooObject;
+import ru.deelter.yookassa.data.IYooRefund;
 
 import java.util.Date;
 import java.util.UUID;
 
-public class Refund implements IYooObject {
+public class Refund implements IYooRefund {
 
 	private final UUID id;
 	private final String status;
@@ -38,7 +38,8 @@ public class Refund implements IYooObject {
 		this.paymentId = paymentId;
 	}
 
-	public UUID getId() {
+	@Override
+	public @NotNull UUID getId() {
 		return id;
 	}
 

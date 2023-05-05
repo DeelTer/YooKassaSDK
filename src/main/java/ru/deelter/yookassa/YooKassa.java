@@ -3,11 +3,7 @@ package ru.deelter.yookassa;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import ru.deelter.yookassa.data.IYooObject;
-import ru.deelter.yookassa.data.IYooPayment;
-import ru.deelter.yookassa.data.IYooRequestData;
-import ru.deelter.yookassa.data.IYooWebhook;
-import ru.deelter.yookassa.data.impl.Amount;
+import ru.deelter.yookassa.data.*;
 import ru.deelter.yookassa.data.impl.Payment;
 import ru.deelter.yookassa.data.impl.Refund;
 import ru.deelter.yookassa.data.impl.Webhook;
@@ -88,12 +84,12 @@ public class YooKassa {
 		return parseResponse(Refund.class, new RefundCreateRequest(data));
 	}
 
-	public Refund createRefund(@NotNull UUID paymentId, @NotNull Amount amount) throws UnspecifiedShopInformation, BadRequestException, IOException {
-		return createRefund(new RefundCreateData(amount, paymentId));
-	}
-
 	public Refund getRefund(@NotNull UUID uuid) throws UnspecifiedShopInformation, BadRequestException, IOException {
 		return parseResponse(Refund.class, new RefundGetRequest(uuid));
+	}
+
+	public Refund getRefund(@NotNull IYooRefund refund) throws UnspecifiedShopInformation, BadRequestException, IOException {
+		return getRefund(refund.getId());
 	}
 
 	public RefundList getRefunds(@NotNull RefundListRequest request) throws UnspecifiedShopInformation, BadRequestException, IOException {
