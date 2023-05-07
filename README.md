@@ -77,7 +77,7 @@ public static ReceiptItem createReceiptItem() {
 ```java
 public static Payment createPaymentWithReceipt(Receipt receipt)throws IOException{
 	return YOO_KASSA.createPayment(PaymentCreateData.builder()
-                    .amount(Amount.from(50,Currency.RUB))
+                    .amount(Amount.from(50, Currency.RUB))
                     .description("Serious chest")
                     .redirect("https://github.com/deelter")
                     .capture(true)
