@@ -49,7 +49,7 @@ public static boolean isSuccess(UUID paymentId) throws IOException {
 The buyer (client) must be registered in the object of the receipt
 
 ```java
-public static Customer createCustomer(String email,String phone) {
+public static Customer createCustomer(String email, String phone) {
 	return Customer.builder()
 		.email(email)
 		.phone(phone)
