@@ -36,7 +36,7 @@ public static Payment getPayment(UUID paymentId) throws IOException {
 	return YOO_KASSA.getPayment(paymentId);
 }
 
-// Is payment status
+// Is payment status success
 public static boolean isSuccess(UUID paymentId) throws IOException {
 	return getPayment(paymentId).getStatus().isSuccess();
 }
@@ -49,7 +49,7 @@ public static boolean isSuccess(UUID paymentId) throws IOException {
 The buyer (client) must be registered in the object of the receipt
 
 ```java
-public static Customer createCustomer(String email,String phone) {
+public static Customer createCustomer(String email, String phone) {
 	return Customer.builder()
 		.email(email)
 		.phone(phone)
@@ -77,7 +77,7 @@ public static ReceiptItem createReceiptItem() {
 ```java
 public static Payment createPaymentWithReceipt(Receipt receipt)throws IOException{
 	return YOO_KASSA.createPayment(PaymentCreateData.builder()
-                    .amount(Amount.from(50,Currency.RUB))
+                    .amount(Amount.from(50, Currency.RUB))
                     .description("Serious chest")
                     .redirect("https://github.com/deelter")
                     .capture(true)
@@ -92,7 +92,7 @@ public static Payment createPaymentWithReceipt(Receipt receipt)throws IOExceptio
 ### Refund creation
 
 ```java
-public static Refund refund(Payment payment, Amount amount) throws IOException {
+public static Refund createRefund(Payment payment, Amount amount) throws IOException {
 	return YOO_KASSA.createRefund(RefundCreateData.from(payment,amount));
 }
 ```
