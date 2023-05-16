@@ -1,5 +1,6 @@
 package ru.deelter.yookassa;
 
+import okhttp3.*;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,16 +29,16 @@ import ru.deelter.yookassa.requests.webhooks.WebhookListRequest;
 import ru.deelter.yookassa.utils.JsonUtil;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.Scanner;
 import java.util.UUID;
 
 public class YooKassa {
+
+	public static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
+	public static final OkHttpClient CLIENT = new OkHttpClient();
 
 	private final int shopId;
 	private final String token;
@@ -112,41 +113,34 @@ public class YooKassa {
 		return parseResponse(WebhookList.class, request);
 	}
 
-	private <T extends IYooObject> @Nullable T parseResponse(@Nullable Class<T> yooClazz, @NotNull YooRequest request) throws IOException, UnspecifiedShopInformation, BadRequestException {
+	private <T extends IYooObject> @Nullable T parseResponse(@Nullable Class<T> yooClazz, @NotNull YooRequest yooRequest) throws IOException, UnspecifiedShopInformation, BadRequestException {
 		if (shopId == 0 || token == null)
 			throw new UnspecifiedShopInformation();
 
-		HttpURLConnection connection = (HttpURLConnection) new URL(request.getUrl()).openConnection();
-		connection.setRequestMethod(request.getMethod().name());
+		HttpURLConnection connection = (HttpURLConnection) new URL(yooRequest.getUrl()).openConnection();
+		connection.setRequestMethod(yooRequest.getMethod().name());
 
 		byte[] message = (shopId + ":" + token).getBytes(StandardCharsets.UTF_8);
 		String basicAuth = Base64.getEncoder().encodeToString(message);
 		connection.setRequestProperty("Authorization", "Basic " + basicAuth);
 
-		IYooRequestData requestData = request.getData();
-		if (requestData != null) {
-			connection.setRequestProperty("Idempotence-Key", UUID.randomUUID().toString());
-			connection.setRequestProperty("Content-Type", "application/json");
-			connection.setDoOutput(true);
 
-			OutputStreamWriter writer = new OutputStreamWriter(connection.getOutputStream());
+		IYooRequestData yooData = yooRequest.getData();
+		RequestBody body = yooData != null ? RequestBody.create(yooData.toJson(), MEDIA_TYPE_JSON) : null;
 
-			writer.write(requestData.toJson());
-			writer.flush();
-			writer.close();
-			connection.getOutputStream().close();
-		}
+		Request request = new Request.Builder()
+				.url(yooRequest.getUrl())
+				.header("Authorization", "Basic " + basicAuth)
+				.method(yooRequest.getMethod().name(), body)
+				.build();
 
-		boolean success = connection.getResponseCode() / 100 == 2;
-		try (InputStream responseStream = success ? connection.getInputStream() : connection.getErrorStream()) {
-			Scanner scanner = new Scanner(responseStream).useDelimiter("\\A");
-			String response = scanner.hasNext() ? scanner.next() : "";
+		try (Response response = CLIENT.newCall(request).execute(); ResponseBody responseBody = response.body()) {
+			if (!response.isSuccessful() || responseBody == null)
+				throw new BadRequestException(response.message());
 
-			if (!success)
-				throw new BadRequestException(response);
 			if (yooClazz == null)
 				return null;
-			return JsonUtil.fromJson(response, yooClazz);
+			return JsonUtil.fromJson(responseBody.string(), yooClazz);
 		}
 	}
 }
