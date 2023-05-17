@@ -29,8 +29,6 @@ import ru.deelter.yookassa.requests.webhooks.WebhookListRequest;
 import ru.deelter.yookassa.utils.JsonUtil;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.UUID;
@@ -117,26 +115,25 @@ public class YooKassa {
 		if (shopId == 0 || token == null)
 			throw new UnspecifiedShopInformation();
 
-		HttpURLConnection connection = (HttpURLConnection) new URL(yooRequest.getUrl()).openConnection();
-		connection.setRequestMethod(yooRequest.getMethod().name());
-
 		byte[] message = (shopId + ":" + token).getBytes(StandardCharsets.UTF_8);
 		String basicAuth = Base64.getEncoder().encodeToString(message);
-		connection.setRequestProperty("Authorization", "Basic " + basicAuth);
-
 
 		IYooRequestData yooData = yooRequest.getData();
-		RequestBody body = yooData != null ? RequestBody.create(yooData.toJson(), MEDIA_TYPE_JSON) : null;
+		RequestBody body = null;
+		if (yooData != null) {
+			body = RequestBody.create(yooData.toJson(), MEDIA_TYPE_JSON);
+		}
 
 		Request request = new Request.Builder()
 				.url(yooRequest.getUrl())
+				.header("Idempotence-Key", yooRequest.getIdempotenceId().toString())
 				.header("Authorization", "Basic " + basicAuth)
 				.method(yooRequest.getMethod().name(), body)
 				.build();
 
 		try (Response response = CLIENT.newCall(request).execute(); ResponseBody responseBody = response.body()) {
 			if (!response.isSuccessful() || responseBody == null)
-				throw new BadRequestException(response.message());
+				throw new BadRequestException(response);
 
 			if (yooClazz == null)
 				return null;

@@ -4,6 +4,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import ru.deelter.yookassa.data.IYooRequestData;
 
+import java.util.UUID;
+
 public abstract class YooRequest {
 
 	private final String url;
@@ -18,6 +20,11 @@ public abstract class YooRequest {
 
 	protected YooRequest(@NotNull String url, @NotNull RequestMethod method) {
 		this(url, method, null);
+	}
+
+	@NotNull
+	public UUID getIdempotenceId() {
+		return UUID.randomUUID();
 	}
 
 	@NotNull
