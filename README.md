@@ -119,7 +119,7 @@ public static Refund getRefund(@NotNull UUID refundId) throws IOException {
 <dependency>
     <groupId>com.github.DeelTer</groupId>
     <artifactId>YooKassaSDK</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ```
 
