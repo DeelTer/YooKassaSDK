@@ -130,6 +130,6 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 dependencies {
-    implementation 'com.github.DeelTer:YooKassaSDK:1.0.0'
+    implementation 'com.github.DeelTer:YooKassaSDK:1.0.2'
 }
 ```
