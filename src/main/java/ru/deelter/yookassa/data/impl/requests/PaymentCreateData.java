@@ -91,7 +91,7 @@ public class PaymentCreateData implements IYooRequestData {
 		return receipt;
 	}
 
-	private static class ConfirmationType {
+	public static class ConfirmationType {
 
 		protected final String type;
 		@SerializedName("return_url")

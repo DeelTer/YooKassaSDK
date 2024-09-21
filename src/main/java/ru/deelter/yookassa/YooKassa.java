@@ -36,14 +36,26 @@ import java.util.UUID;
 public class YooKassa {
 
 	public static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
-	public static final OkHttpClient CLIENT = new OkHttpClient();
 
 	private final int shopId;
 	private final String token;
+	private final OkHttpClient client;
+	private final String basicAuth;
 
 	protected YooKassa(int shopId, String token) {
+		this(shopId, token, new OkHttpClient());
+	}
+
+	protected YooKassa(int shopId, String token, OkHttpClient client) {
+		if (shopId <= 0 || token == null)
+			throw new UnspecifiedShopInformation();
+
 		this.shopId = shopId;
 		this.token = token;
+		this.client = client;
+
+		byte[] message = (shopId + ":" + token).getBytes(StandardCharsets.UTF_8);
+		basicAuth = Base64.getEncoder().encodeToString(message);
 	}
 
 	@Contract(value = "_, _ -> new", pure = true)
@@ -112,17 +124,8 @@ public class YooKassa {
 	}
 
 	private <T extends IYooObject> @Nullable T parseResponse(@Nullable Class<T> yooClazz, @NotNull YooRequest yooRequest) throws IOException, UnspecifiedShopInformation, BadRequestException {
-		if (shopId == 0 || token == null)
-			throw new UnspecifiedShopInformation();
-
-		byte[] message = (shopId + ":" + token).getBytes(StandardCharsets.UTF_8);
-		String basicAuth = Base64.getEncoder().encodeToString(message);
-
 		IYooRequestData yooData = yooRequest.getData();
-		RequestBody body = null;
-		if (yooData != null) {
-			body = RequestBody.create(yooData.toJson(), MEDIA_TYPE_JSON);
-		}
+		RequestBody body = yooData != null ? RequestBody.create(yooData.toJson(), MEDIA_TYPE_JSON) : null;
 
 		Request request = new Request.Builder()
 				.url(yooRequest.getUrl())
@@ -131,13 +134,10 @@ public class YooKassa {
 				.method(yooRequest.getMethod().name(), body)
 				.build();
 
-		try (Response response = CLIENT.newCall(request).execute(); ResponseBody responseBody = response.body()) {
+		try (Response response = client.newCall(request).execute(); ResponseBody responseBody = response.body()) {
 			if (!response.isSuccessful() || responseBody == null)
 				throw new BadRequestException(response);
-
-			if (yooClazz == null)
-				return null;
-			return JsonUtil.fromJson(responseBody.string(), yooClazz);
+			return yooClazz != null ? JsonUtil.fromJson(responseBody.string(), yooClazz) : null;
 		}
 	}
 }
