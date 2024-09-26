@@ -14,7 +14,9 @@ import ru.deelter.yookassa.exceptions.EmptyRequiredFieldsException;
 				"value": "150.00",
 				"currency": "RUB"
 			},
-			"vat_code": "1"
+			"vat_code": "1",
+			"payment_mode": "full_payment",
+      		"payment_subject": "commodity"
 		}
  */
 
@@ -28,6 +30,10 @@ public class ReceiptItem implements IYooObject {
 	private final int quantity;
 	@SerializedName("vat_code")
 	private final int vatCode;
+	@SerializedName("payment_mode")
+	private final String paymentMode;
+	@SerializedName("payment_subject")
+	private final String paymentSubject;
 
 	@Contract(pure = true)
 	private ReceiptItem(@NotNull Builder builder) {
@@ -35,6 +41,8 @@ public class ReceiptItem implements IYooObject {
 		amount = builder.amount;
 		quantity = builder.quantity;
 		vatCode = builder.vatCode;
+		paymentMode = builder.paymentMode;
+		paymentSubject = builder.paymentSubject;
 	}
 
 	@Contract(value = " -> new", pure = true)
@@ -48,6 +56,8 @@ public class ReceiptItem implements IYooObject {
 		builder.amount = copy.getAmount();
 		builder.quantity = copy.getQuantity();
 		builder.vatCode = copy.getVatCode();
+		builder.paymentSubject = copy.paymentSubject;
+		builder.paymentMode = copy.paymentMode;
 		return builder;
 	}
 
@@ -72,8 +82,20 @@ public class ReceiptItem implements IYooObject {
 		private Amount amount;
 		private int quantity = 1;
 		private int vatCode = 1;
+		private String paymentMode;
+		private String paymentSubject;
 
 		private Builder() {
+		}
+
+		public Builder paymentMode(PaymentMode paymentMode) {
+			this.paymentMode = paymentMode.name().toLowerCase();
+			return this;
+		}
+
+		public Builder paymentSubject(PaymentSubject paymentSubject) {
+			this.paymentSubject = paymentSubject.name().toLowerCase();
+			return this;
 		}
 
 		public Builder description(String description) {
@@ -100,7 +122,7 @@ public class ReceiptItem implements IYooObject {
 		}
 
 		private boolean isValid() {
-			return description != null && amount != null && quantity >= 1 && vatCode >= 1;
+			return description != null && amount != null && quantity >= 1 && vatCode >= 1 && paymentMode != null && paymentSubject != null;
 		}
 
 		@Contract(value = " -> new", pure = true)
