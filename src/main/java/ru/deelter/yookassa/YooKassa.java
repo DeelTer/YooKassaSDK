@@ -88,10 +88,10 @@ public class YooKassa {
 	}
 
 	public Payment capturePayment(@NotNull UUID uuid) throws BadRequestException, IOException {
-		return executeRequest(Payment.class, new PaymentCaptureRequest(uuid, new PaymentCaptureData(null)));
+		return capturePayment(uuid, null);
 	}
 
-	public Payment capturePayment(@NotNull UUID uuid, @NotNull Amount amount) throws BadRequestException, IOException {
+	public Payment capturePayment(@NotNull UUID uuid, @Nullable Amount amount) throws BadRequestException, IOException {
 		return executeRequest(Payment.class, new PaymentCaptureRequest(uuid, new PaymentCaptureData(amount)));
 	}
 
