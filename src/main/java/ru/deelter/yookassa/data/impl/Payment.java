@@ -115,6 +115,8 @@ public class Payment implements IYooPayment {
 		@SerializedName("confirmation_url")
 		private final String url;
 		private String type = "redirect";
+		@SerializedName("confirmation_token")
+		private String confirmationToken;
 
 		public ConfirmationType(@NotNull String type, @NotNull String confirmUrl) {
 			this.type = type;
@@ -131,6 +133,14 @@ public class Payment implements IYooPayment {
 
 		public String getUrl() {
 			return url;
+		}
+
+		public String getConfirmationToken() {
+			return confirmationToken;
+		}
+
+		public void setConfirmationToken(String confirmationToken) {
+			this.confirmationToken = confirmationToken;
 		}
 
 		@Override
