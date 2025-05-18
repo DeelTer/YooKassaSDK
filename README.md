@@ -119,17 +119,21 @@ public static Refund getRefund(@NotNull UUID refundId) throws IOException {
 <dependency>
     <groupId>com.github.DeelTer</groupId>
     <artifactId>YooKassaSDK</artifactId>
-    <version>1.0.4</version>
+    <version>1.0.5</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```gradle
-repositories {
-    maven { url 'https://jitpack.io' }
+dependencyResolutionManagement {
+	repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+	repositories {
+		mavenCentral()
+		maven { url 'https://jitpack.io' }
+	}
 }
 dependencies {
-    implementation 'com.github.DeelTer:YooKassaSDK:1.0.4'
+    implementation 'com.github.DeelTer:YooKassaSDK:1.0.5'
 }
 ```
