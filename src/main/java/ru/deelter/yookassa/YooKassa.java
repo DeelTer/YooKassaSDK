@@ -38,14 +38,14 @@ public class YooKassa {
 	protected final OkHttpClient client;
 	protected final String basicAuth;
 
-	protected YooKassa(int shopId, String token) {
+	public YooKassa(int shopId, String token) {
 		this(shopId, token, new OkHttpClient());
 	}
 
-	protected YooKassa(int shopId, String token, OkHttpClient client) {
-		if (shopId <= 0 || token == null)
+	public YooKassa(int shopId, String token, OkHttpClient client) {
+		if (shopId <= 0 || token == null) {
 			throw new UnspecifiedShopInformation();
-
+		}
 		this.shopId = shopId;
 		this.token = token;
 		this.client = client;
