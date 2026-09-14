@@ -1,152 +1,292 @@
 package ru.deelter.yookassa;
 
 import okhttp3.*;
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import ru.deelter.yookassa.data.*;
-import ru.deelter.yookassa.data.impl.Amount;
-import ru.deelter.yookassa.data.impl.Payment;
-import ru.deelter.yookassa.data.impl.Refund;
-import ru.deelter.yookassa.data.impl.Webhook;
-import ru.deelter.yookassa.data.impl.collections.PaymentList;
-import ru.deelter.yookassa.data.impl.collections.RefundList;
-import ru.deelter.yookassa.data.impl.collections.WebhookList;
-import ru.deelter.yookassa.data.impl.requests.*;
-import ru.deelter.yookassa.exceptions.BadRequestException;
-import ru.deelter.yookassa.exceptions.UnspecifiedShopInformation;
-import ru.deelter.yookassa.requests.payments.*;
-import ru.deelter.yookassa.requests.refunds.RefundCreateRequest;
-import ru.deelter.yookassa.requests.refunds.RefundGetRequest;
-import ru.deelter.yookassa.requests.refunds.RefundListRequest;
-import ru.deelter.yookassa.requests.webhooks.WebhookCreateRequest;
-import ru.deelter.yookassa.requests.webhooks.WebhookDeleteRequest;
-import ru.deelter.yookassa.requests.webhooks.WebhookListRequest;
+import ru.deelter.yookassa.exceptions.YooKassaApiException;
+import ru.deelter.yookassa.model.JsonModel;
 import ru.deelter.yookassa.utils.JsonUtil;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Base64;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-public class YooKassa {
+/**
+ * Synchronous, thread-safe YooKassa API v3 client. Create one instance per credential set and reuse it.
+ * All API operations are inherited from {@link YooKassaOperations}.
+ *
+ * <p>Methods perform blocking I/O. They throw {@link YooKassaApiException} (unchecked) for non-2xx responses
+ * and {@link IOException} for transport failures or unreadable 2xx responses.
+ */
+public final class YooKassa extends YooKassaOperations implements AutoCloseable {
 
-	public static final MediaType MEDIA_TYPE_JSON = MediaType.parse("application/json; charset=utf-8");
+	public static final MediaType MEDIA_TYPE_JSON = MediaType.get("application/json; charset=utf-8");
+	public static final String DEFAULT_BASE_URL = "https://api.yookassa.ru/v3";
+	public static final Duration DEFAULT_CONNECT_TIMEOUT = Duration.ofSeconds(10);
+	public static final Duration DEFAULT_READ_TIMEOUT = Duration.ofSeconds(40);
+	public static final Duration DEFAULT_CALL_TIMEOUT = Duration.ofSeconds(60);
 
-	protected final int shopId;
-	protected final String token;
-	protected final OkHttpClient client;
-	protected final String basicAuth;
+	private static final byte[] EMPTY_OBJECT = "{}".getBytes(StandardCharsets.UTF_8);
 
-	public YooKassa(int shopId, String token) {
-		this(shopId, token, new OkHttpClient());
+	private final OkHttpClient client;
+	private final String authorization;
+	private final HttpUrl baseUrl;
+	private final RetryPolicy retryPolicy;
+	private final boolean ownsClient;
+	private volatile boolean closed;
+
+	private YooKassa(Builder builder) {
+		if (builder.authorization == null)
+			throw new IllegalStateException("Credentials are required: call shop(...) or oauth(...)");
+		authorization = builder.authorization;
+		baseUrl = builder.baseUrl;
+		retryPolicy = builder.retryPolicy;
+		ownsClient = builder.httpClient == null;
+		client = configure(ownsClient ? new OkHttpClient() : builder.httpClient, builder, ownsClient);
 	}
 
-	public YooKassa(int shopId, String token, OkHttpClient client) {
-		if (shopId <= 0 || token == null) {
-			throw new UnspecifiedShopInformation();
+	/**
+	 * Shop ID and secret key authentication with default settings.
+	 */
+	public static YooKassa create(String shopId, String secretKey) {
+		return builder().shop(shopId, secretKey).build();
+	}
+
+	/**
+	 * OAuth token authentication with default settings; required for API-managed webhooks.
+	 */
+	public static YooKassa oauth(String token) {
+		return builder().oauth(token).build();
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	/**
+	 * A new random idempotence key. Persist it with your operation before the first attempt.
+	 */
+	public static String newIdempotenceKey() {
+		return UUID.randomUUID().toString();
+	}
+
+	private static OkHttpClient configure(OkHttpClient base, Builder builder, boolean defaults) {
+		if (!defaults && builder.connectTimeout == null && builder.readTimeout == null && builder.callTimeout == null)
+			return base;
+		// newBuilder() shares the connection pool and dispatcher with the base client.
+		return base.newBuilder()
+			.connectTimeout(millis(builder.connectTimeout, DEFAULT_CONNECT_TIMEOUT, defaults, base.connectTimeoutMillis()), TimeUnit.MILLISECONDS)
+			.readTimeout(millis(builder.readTimeout, DEFAULT_READ_TIMEOUT, defaults, base.readTimeoutMillis()), TimeUnit.MILLISECONDS)
+			.callTimeout(millis(builder.callTimeout, DEFAULT_CALL_TIMEOUT, defaults, base.callTimeoutMillis()), TimeUnit.MILLISECONDS)
+			.build();
+	}
+
+	private static long millis(Duration value, Duration fallback, boolean defaults, long current) {
+		if (value != null) return value.toMillis();
+		return defaults ? fallback.toMillis() : current;
+	}
+
+	/**
+	 * Releases SDK-owned connections and threads and rejects further calls. Call after requests finish.
+	 * An injected OkHttp client is never shut down.
+	 */
+	@Override
+	public void close() {
+		closed = true;
+		if (ownsClient) {
+			client.dispatcher().cancelAll();
+			client.connectionPool().evictAll();
+			client.dispatcher().executorService().shutdown();
 		}
-		this.shopId = shopId;
-		this.token = token;
-		this.client = client;
-
-		byte[] message = (shopId + ":" + token).getBytes(StandardCharsets.UTF_8);
-		basicAuth = Base64.getEncoder().encodeToString(message);
 	}
 
-	@Contract(value = "_, _ -> new", pure = true)
-	public static @NotNull YooKassa create(int shopId, @NotNull String token) {
-		return new YooKassa(shopId, token);
+	public HttpUrl getBaseUrl() {
+		return baseUrl;
 	}
 
-	public int getShopId() {
-		return shopId;
+	public RetryPolicy getRetryPolicy() {
+		return retryPolicy;
 	}
 
-	public String getToken() {
-		return token;
+	/**
+	 * The effective HTTP client, including SDK timeouts.
+	 */
+	OkHttpClient httpClient() {
+		return client;
 	}
 
-	public Payment createPayment(@NotNull PaymentCreateData data) throws BadRequestException, IOException {
-		return executeRequest(Payment.class, new PaymentCreateRequest(data));
+	@Override
+	<T> T execute(HttpMethod method, String[] path, JsonModel query, JsonModel body, String key, Class<T> responseType)
+		throws IOException {
+		if (closed) throw new IllegalStateException("YooKassa client is closed");
+		HttpUrl url = RequestEncoding.url(baseUrl, path, query);
+		byte[] payload = body != null ? body.toJson().getBytes(StandardCharsets.UTF_8) : method == HttpMethod.POST ? EMPTY_OBJECT : null;
+		Request.Builder builder = new Request.Builder()
+			.url(url)
+			.header("Authorization", authorization)
+			.header("Accept", "application/json")
+			.method(method.name(), payload == null ? null : RequestBody.create(payload, MEDIA_TYPE_JSON));
+		if (method != HttpMethod.GET) builder.header("Idempotence-Key", RequestEncoding.key(key));
+		Request request = builder.build();
+
+		// One serialized payload and one idempotence key for every attempt.
+		for (int attempt = 1; ; attempt++) {
+			if (closed) throw new IllegalStateException("YooKassa client is closed");
+			Long retryAfter = null;
+			try {
+				return send(request, responseType);
+			} catch (YooKassaApiException e) {
+				if (!e.isRetryable() || !retryPolicy.canRetry(attempt)) throw e;
+				retryAfter = e.getRetryAfterMillis();
+			} catch (IOException e) {
+				if (e instanceof ResponseParseException || closed || Thread.currentThread().isInterrupted()
+					|| !retryPolicy.canRetry(attempt))
+					throw e;
+			}
+			try {
+				retryPolicy.sleep(retryPolicy.delayMillis(attempt, retryAfter));
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				throw new InterruptedIOException("Interrupted while waiting to retry");
+			}
+		}
 	}
 
-	public Payment getPayment(@NotNull UUID uuid) throws BadRequestException, IOException {
-		return executeRequest(Payment.class, new PaymentGetRequest(uuid));
+	private <T> T send(Request request, Class<T> responseType) throws IOException {
+		try (Response response = client.newCall(request).execute()) {
+			ResponseBody responseBody = response.body();
+			if (!response.isSuccessful()) {
+				throw YooKassaApiException.of(response.code(), responseBody == null ? "" : responseBody.string());
+			}
+			if (responseType == null) return null;
+			if (responseBody == null) throw new ResponseParseException("Missing API response body", null);
+			try {
+				T result = JsonUtil.fromJson(responseBody.string(), responseType);
+				if (result == null) throw new ResponseParseException("Empty API response body", null);
+				return result;
+			} catch (com.google.gson.JsonParseException | IllegalStateException e) {
+				throw new ResponseParseException("Invalid API response JSON", e);
+			}
+		}
 	}
 
-	public Payment getPayment(@NotNull IYooPayment paymentIdHolder) throws BadRequestException, IOException {
-		return getPayment(paymentIdHolder.getId());
+	/**
+	 * A 2xx response whose body could not be read as the expected object; never retried.
+	 */
+	public static final class ResponseParseException extends IOException {
+		ResponseParseException(String message, Throwable cause) {
+			super(message, cause);
+		}
 	}
 
-	public PaymentList getPayments(@NotNull PaymentListRequest request) throws BadRequestException, IOException {
-		return executeRequest(PaymentList.class, request);
-	}
+	/**
+	 * Client configuration. Exactly one of {@link #shop(String, String)} or {@link #oauth(String)} is required.
+	 */
+	public static final class Builder {
+		private String authorization;
+		private HttpUrl baseUrl = HttpUrl.get(DEFAULT_BASE_URL);
+		private OkHttpClient httpClient;
+		private Duration connectTimeout;
+		private Duration readTimeout;
+		private Duration callTimeout;
+		private RetryPolicy retryPolicy = RetryPolicy.none();
 
-	public PaymentList getPayments() throws BadRequestException, IOException {
-		return getPayments(PaymentListRequest.builder().build());
-	}
+		private Builder() {
+		}
 
-	public Payment capturePayment(@NotNull UUID uuid) throws BadRequestException, IOException {
-		return capturePayment(uuid, null);
-	}
+		/**
+		 * Basic authentication with a shop ID and secret key from the merchant dashboard.
+		 */
+		public Builder shop(String shopId, String secretKey) {
+			String id = credential(shopId, "shopId");
+			if (id.indexOf(':') >= 0) throw new IllegalArgumentException("shopId must not contain ':'");
+			String secret = credential(secretKey, "secretKey");
+			authorization = "Basic " + Base64.getEncoder().encodeToString((id + ":" + secret).getBytes(StandardCharsets.UTF_8));
+			return this;
+		}
 
-	public Payment capturePayment(@NotNull UUID uuid, @Nullable Amount amount) throws BadRequestException, IOException {
-		return executeRequest(Payment.class, new PaymentCaptureRequest(uuid, new PaymentCaptureData(amount)));
-	}
+		public Builder shop(long shopId, String secretKey) {
+			if (shopId <= 0) throw new IllegalArgumentException("shopId must be positive");
+			return shop(Long.toString(shopId), secretKey);
+		}
 
-	public Payment cancelPayment(@NotNull UUID uuid) throws BadRequestException, IOException {
-		return executeRequest(Payment.class, new PaymentCancelRequest(uuid));
-	}
+		/**
+		 * OAuth bearer token from the partner flow.
+		 */
+		public Builder oauth(String token) {
+			String value = credential(token, "token");
+			for (int i = 0; i < value.length(); i++) {
+				if (value.charAt(i) > 0x7E)
+					throw new IllegalArgumentException("token must contain ASCII characters only");
+			}
+			authorization = "Bearer " + value;
+			return this;
+		}
 
-	public Refund createRefund(@NotNull RefundCreateData data) throws BadRequestException, IOException {
-		return executeRequest(Refund.class, new RefundCreateRequest(data));
-	}
+		/**
+		 * API root, for example a proxy or a local mock server. Defaults to {@link #DEFAULT_BASE_URL}.
+		 */
+		public Builder baseUrl(String baseUrl) {
+			this.baseUrl = HttpUrl.get(Objects.requireNonNull(baseUrl, "baseUrl"));
+			return this;
+		}
 
-	public Refund getRefund(@NotNull UUID uuid) throws BadRequestException, IOException {
-		return executeRequest(Refund.class, new RefundGetRequest(uuid));
-	}
+		/**
+		 * Caller-owned OkHttp client; {@link YooKassa#close()} will not shut it down.
+		 * Explicit timeouts are applied to a derived client sharing its pool and dispatcher.
+		 */
+		public Builder httpClient(OkHttpClient httpClient) {
+			this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
+			return this;
+		}
 
-	public Refund getRefund(@NotNull IYooRefund refund) throws BadRequestException, IOException {
-		return getRefund(refund.getId());
-	}
+		public Builder connectTimeout(Duration timeout) {
+			connectTimeout = timeout(timeout);
+			return this;
+		}
 
-	public RefundList getRefunds(@NotNull RefundListRequest request) throws BadRequestException, IOException {
-		return executeRequest(RefundList.class, request);
-	}
+		public Builder readTimeout(Duration timeout) {
+			readTimeout = timeout(timeout);
+			return this;
+		}
 
-	public Webhook createWebhook(@NotNull WebhookCreateData data) throws BadRequestException, IOException {
-		return executeRequest(Webhook.class, new WebhookCreateRequest(data));
-	}
+		/**
+		 * Limit for one attempt, including connection, request and response.
+		 */
+		public Builder callTimeout(Duration timeout) {
+			callTimeout = timeout(timeout);
+			return this;
+		}
 
-	public void deleteWebhook(@NotNull UUID uuid) throws BadRequestException, IOException {
-		executeRequest(null, new WebhookDeleteRequest(uuid));
-	}
+		public Builder retryPolicy(RetryPolicy retryPolicy) {
+			this.retryPolicy = Objects.requireNonNull(retryPolicy, "retryPolicy");
+			return this;
+		}
 
-	public void deleteWebhook(@NotNull IYooWebhook yooWebhook) throws BadRequestException, IOException {
-		deleteWebhook(yooWebhook.getId());
-	}
+		public YooKassa build() {
+			return new YooKassa(this);
+		}
 
-	public WebhookList getWebhooks(WebhookListRequest request) throws BadRequestException, IOException {
-		return executeRequest(WebhookList.class, request);
-	}
+		private static Duration timeout(Duration timeout) {
+			Objects.requireNonNull(timeout, "timeout");
+			if (timeout.isNegative()) throw new IllegalArgumentException("timeout must not be negative");
+			return timeout;
+		}
 
-	protected <T extends IYooObject> @Nullable T executeRequest(@Nullable Class<T> yooClazz, @NotNull YooRequest yooRequest)
-			throws IOException, BadRequestException {
-		IYooRequestData yooData = yooRequest.getData();
-		RequestBody body = yooData != null ? RequestBody.create(yooData.toJson(), MEDIA_TYPE_JSON) : null;
-
-		Request request = new Request.Builder()
-				.url(yooRequest.getUrl())
-				.header("Idempotence-Key", yooRequest.getIdempotenceId().toString())
-				.header("Authorization", "Basic " + basicAuth)
-				.method(yooRequest.getMethod().name(), body)
-				.build();
-
-		try (Response response = client.newCall(request).execute(); ResponseBody responseBody = response.body()) {
-			if (!response.isSuccessful() || responseBody == null)
-				throw new BadRequestException(response);
-			return yooClazz != null ? JsonUtil.fromJson(responseBody.string(), yooClazz) : null;
+		/**
+		 * Rejects blanks and control characters that would corrupt the Authorization header.
+		 */
+		private static String credential(String value, String name) {
+			Objects.requireNonNull(value, name);
+			if (value.trim().isEmpty()) throw new IllegalArgumentException(name + " must not be blank");
+			for (int i = 0; i < value.length(); i++) {
+				char c = value.charAt(i);
+				if (c < 0x20 || c == 0x7F) throw new IllegalArgumentException(name + " contains control characters");
+			}
+			return value;
 		}
 	}
 }

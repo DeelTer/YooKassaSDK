@@ -1,0 +1,5 @@
+# JitPack defaults to JDK 8, which does not support maven.compiler.release. Bytecode still targets Java 8.
+jdk:
+  - openjdk17
+install:
+  - mvn -B clean install -DskipTests
