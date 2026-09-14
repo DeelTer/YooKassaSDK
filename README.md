@@ -44,17 +44,17 @@ and OAuth webhook subscriptions. See the [operation table](docs/API_COVERAGE.md)
 <dependency>
     <groupId>com.github.DeelTer</groupId>
     <artifactId>YooKassaSDK</artifactId>
-    <version>2.0.1</version>
+    <version>2.0.2</version>
 </dependency>
 ```
 
-Gradle: `implementation("com.github.DeelTer:YooKassaSDK:2.0.1")`.
+Gradle: `implementation("com.github.DeelTer:YooKassaSDK:2.0.2")`.
 
 Always pin a release tag. `master-SNAPSHOT` or a commit hash follows ongoing development and
 may break without notice. Releases `1.0.0`–`1.0.6` stay available under their tags.
 
-> Tag `2.0.0` does not build on JitPack (outdated Maven in its build image). Use `2.0.1`:
-> the same code with a fixed build configuration.
+> Tags `2.0.0` and `2.0.1` do not build on JitPack (incomplete build configuration). Use `2.0.2`:
+> the same code with a fixed build.
 
 ### Local build
 
@@ -68,7 +68,7 @@ The Maven Wrapper downloads Maven 3.9.9; a local Maven 3.6.3+ works as well.
 <dependency>
     <groupId>ru.deelter.yookassa</groupId>
     <artifactId>YooKassaSDK</artifactId>
-    <version>2.0.1</version>
+    <version>2.0.2</version>
 </dependency>
 ```
 

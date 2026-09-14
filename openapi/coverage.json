@@ -1,0 +1,877 @@
+{
+  "spec_sha256": "49c81131e5e5d3a421bdbf8cdaf4422cf87c35c3b394c931eac4326d5b760080",
+  "operations": [
+    {
+      "method": "createPayment",
+      "http_method": "POST",
+      "path": "/payments",
+      "arguments": [
+        [
+          "CreatePaymentRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "CreatePaymentRequest",
+      "query": null,
+      "response": "Payment",
+      "query_parameters": []
+    },
+    {
+      "method": "getPayments",
+      "http_method": "GET",
+      "path": "/payments",
+      "arguments": [
+        [
+          "GetPaymentsQuery",
+          "query"
+        ]
+      ],
+      "body": null,
+      "query": "GetPaymentsQuery",
+      "response": "PaymentList",
+      "query_parameters": [
+        "created_at.gte",
+        "created_at.gt",
+        "created_at.lte",
+        "created_at.lt",
+        "captured_at.gte",
+        "captured_at.gt",
+        "captured_at.lte",
+        "captured_at.lt",
+        "payment_method",
+        "status",
+        "limit",
+        "cursor"
+      ]
+    },
+    {
+      "method": "getPayment",
+      "http_method": "GET",
+      "path": "/payments/{payment_id}",
+      "arguments": [
+        [
+          "String",
+          "paymentId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "Payment",
+      "query_parameters": []
+    },
+    {
+      "method": "capturePayment",
+      "http_method": "POST",
+      "path": "/payments/{payment_id}/capture",
+      "arguments": [
+        [
+          "String",
+          "paymentId"
+        ],
+        [
+          "PaymentCaptureRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "PaymentCaptureRequest",
+      "query": null,
+      "response": "Payment",
+      "query_parameters": []
+    },
+    {
+      "method": "cancelPayment",
+      "http_method": "POST",
+      "path": "/payments/{payment_id}/cancel",
+      "arguments": [
+        [
+          "String",
+          "paymentId"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "Payment",
+      "query_parameters": []
+    },
+    {
+      "method": "createPaymentMethod",
+      "http_method": "POST",
+      "path": "/payment_methods",
+      "arguments": [
+        [
+          "JsonModel",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "JsonModel",
+      "query": null,
+      "response": "JsonModel",
+      "query_parameters": []
+    },
+    {
+      "method": "getPaymentMethod",
+      "http_method": "GET",
+      "path": "/payment_methods/{payment_method_id}",
+      "arguments": [
+        [
+          "String",
+          "paymentMethodId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "JsonModel",
+      "query_parameters": []
+    },
+    {
+      "method": "createInvoice",
+      "http_method": "POST",
+      "path": "/invoices",
+      "arguments": [
+        [
+          "CreateInvoiceRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "CreateInvoiceRequest",
+      "query": null,
+      "response": "Invoice",
+      "query_parameters": []
+    },
+    {
+      "method": "getInvoice",
+      "http_method": "GET",
+      "path": "/invoices/{invoice_id}",
+      "arguments": [
+        [
+          "String",
+          "invoiceId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "Invoice",
+      "query_parameters": []
+    },
+    {
+      "method": "createRefund",
+      "http_method": "POST",
+      "path": "/refunds",
+      "arguments": [
+        [
+          "RefundRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "RefundRequest",
+      "query": null,
+      "response": "Refund",
+      "query_parameters": []
+    },
+    {
+      "method": "getRefunds",
+      "http_method": "GET",
+      "path": "/refunds",
+      "arguments": [
+        [
+          "GetRefundsQuery",
+          "query"
+        ]
+      ],
+      "body": null,
+      "query": "GetRefundsQuery",
+      "response": "RefundList",
+      "query_parameters": [
+        "created_at.gte",
+        "created_at.gt",
+        "created_at.lte",
+        "created_at.lt",
+        "payment_id",
+        "status",
+        "limit",
+        "cursor"
+      ]
+    },
+    {
+      "method": "getRefund",
+      "http_method": "GET",
+      "path": "/refunds/{refund_id}",
+      "arguments": [
+        [
+          "String",
+          "refundId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "Refund",
+      "query_parameters": []
+    },
+    {
+      "method": "createReceipt",
+      "http_method": "POST",
+      "path": "/receipts",
+      "arguments": [
+        [
+          "PostReceiptData",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "PostReceiptData",
+      "query": null,
+      "response": "Receipt",
+      "query_parameters": []
+    },
+    {
+      "method": "getReceipts",
+      "http_method": "GET",
+      "path": "/receipts",
+      "arguments": [
+        [
+          "GetReceiptsQuery",
+          "query"
+        ]
+      ],
+      "body": null,
+      "query": "GetReceiptsQuery",
+      "response": "GetReceiptsResponse",
+      "query_parameters": [
+        "created_at.gte",
+        "created_at.gt",
+        "created_at.lte",
+        "created_at.lt",
+        "status",
+        "payment_id",
+        "refund_id",
+        "limit",
+        "cursor"
+      ]
+    },
+    {
+      "method": "getReceipt",
+      "http_method": "GET",
+      "path": "/receipts/{receipt_id}",
+      "arguments": [
+        [
+          "String",
+          "receiptId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "Receipt",
+      "query_parameters": []
+    },
+    {
+      "method": "createDeal",
+      "http_method": "POST",
+      "path": "/deals",
+      "arguments": [
+        [
+          "SafeDealRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "SafeDealRequest",
+      "query": null,
+      "response": "SafeDeal",
+      "query_parameters": []
+    },
+    {
+      "method": "getDeals",
+      "http_method": "GET",
+      "path": "/deals",
+      "arguments": [
+        [
+          "GetDealsQuery",
+          "query"
+        ]
+      ],
+      "body": null,
+      "query": "GetDealsQuery",
+      "response": "GetDealsResponse",
+      "query_parameters": [
+        "created_at.gte",
+        "created_at.gt",
+        "created_at.lte",
+        "created_at.lt",
+        "expires_at.gte",
+        "expires_at.gt",
+        "expires_at.lte",
+        "expires_at.lt",
+        "status",
+        "full_text_search",
+        "limit",
+        "cursor"
+      ]
+    },
+    {
+      "method": "getDeal",
+      "http_method": "GET",
+      "path": "/deals/{deal_id}",
+      "arguments": [
+        [
+          "String",
+          "dealId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "SafeDeal",
+      "query_parameters": []
+    },
+    {
+      "method": "createPayout",
+      "http_method": "POST",
+      "path": "/payouts",
+      "arguments": [
+        [
+          "PayoutRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "PayoutRequest",
+      "query": null,
+      "response": "Payout",
+      "query_parameters": []
+    },
+    {
+      "method": "getPayouts",
+      "http_method": "GET",
+      "path": "/payouts",
+      "arguments": [
+        [
+          "GetPayoutsQuery",
+          "query"
+        ]
+      ],
+      "body": null,
+      "query": "GetPayoutsQuery",
+      "response": "PayoutsList",
+      "query_parameters": [
+        "created_at.gte",
+        "created_at.gt",
+        "created_at.lte",
+        "created_at.lt",
+        "succeeded_at.gte",
+        "succeeded_at.gt",
+        "succeeded_at.lte",
+        "succeeded_at.lt",
+        "payout_destination.type",
+        "status",
+        "limit",
+        "cursor"
+      ]
+    },
+    {
+      "method": "searchPayouts",
+      "http_method": "GET",
+      "path": "/payouts/search",
+      "arguments": [
+        [
+          "SearchPayoutsQuery",
+          "query"
+        ]
+      ],
+      "body": null,
+      "query": "SearchPayoutsQuery",
+      "response": "PayoutsList",
+      "query_parameters": [
+        "created_at.gte",
+        "created_at.gt",
+        "created_at.lte",
+        "created_at.lt",
+        "metadata",
+        "limit",
+        "cursor"
+      ]
+    },
+    {
+      "method": "getPayout",
+      "http_method": "GET",
+      "path": "/payouts/{payout_id}",
+      "arguments": [
+        [
+          "String",
+          "payoutId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "Payout",
+      "query_parameters": []
+    },
+    {
+      "method": "getSbpBanks",
+      "http_method": "GET",
+      "path": "/sbp_banks",
+      "arguments": [],
+      "body": null,
+      "query": null,
+      "response": "GetSbpBanksResponse",
+      "query_parameters": []
+    },
+    {
+      "method": "createPersonalData",
+      "http_method": "POST",
+      "path": "/personal_data",
+      "arguments": [
+        [
+          "JsonModel",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "JsonModel",
+      "query": null,
+      "response": "PersonalData",
+      "query_parameters": []
+    },
+    {
+      "method": "getPersonalData",
+      "http_method": "GET",
+      "path": "/personal_data/{personal_data_id}",
+      "arguments": [
+        [
+          "String",
+          "personalDataId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "PersonalData",
+      "query_parameters": []
+    },
+    {
+      "method": "createWebhook",
+      "http_method": "POST",
+      "path": "/webhooks",
+      "arguments": [
+        [
+          "CreateWebhookRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "CreateWebhookRequest",
+      "query": null,
+      "response": "Webhook",
+      "query_parameters": []
+    },
+    {
+      "method": "getWebhooks",
+      "http_method": "GET",
+      "path": "/webhooks",
+      "arguments": [],
+      "body": null,
+      "query": null,
+      "response": "WebhookList",
+      "query_parameters": []
+    },
+    {
+      "method": "deleteWebhook",
+      "http_method": "DELETE",
+      "path": "/webhooks/{webhook_id}",
+      "arguments": [
+        [
+          "String",
+          "webhookId"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "void",
+      "query_parameters": []
+    },
+    {
+      "method": "getSettings",
+      "http_method": "GET",
+      "path": "/me",
+      "arguments": [
+        [
+          "GetSettingsQuery",
+          "query"
+        ]
+      ],
+      "body": null,
+      "query": "GetSettingsQuery",
+      "response": "Me",
+      "query_parameters": [
+        "on_behalf_of"
+      ]
+    },
+    {
+      "method": "createPosLink",
+      "http_method": "POST",
+      "path": "/pos_links",
+      "arguments": [
+        [
+          "CreatePosLinkRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "CreatePosLinkRequest",
+      "query": null,
+      "response": "PosLinkInfo",
+      "query_parameters": []
+    },
+    {
+      "method": "changePosLinkRecipient",
+      "http_method": "POST",
+      "path": "/pos_links/{pos_link_id}/recipient",
+      "arguments": [
+        [
+          "String",
+          "posLinkId"
+        ],
+        [
+          "RecipientPosLinkRequest",
+          "body"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": "RecipientPosLinkRequest",
+      "query": null,
+      "response": "PosLinkInfo",
+      "query_parameters": []
+    },
+    {
+      "method": "deactivatePosLink",
+      "http_method": "POST",
+      "path": "/pos_links/{pos_link_id}/deactivate",
+      "arguments": [
+        [
+          "String",
+          "posLinkId"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "PosLinkInfo",
+      "query_parameters": []
+    },
+    {
+      "method": "activatePosLink",
+      "http_method": "POST",
+      "path": "/pos_links/{pos_link_id}/activate",
+      "arguments": [
+        [
+          "String",
+          "posLinkId"
+        ],
+        [
+          "String",
+          "idempotenceKey"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "PosLinkInfo",
+      "query_parameters": []
+    },
+    {
+      "method": "getPosLink",
+      "http_method": "GET",
+      "path": "/pos_links/{pos_link_id}",
+      "arguments": [
+        [
+          "String",
+          "posLinkId"
+        ]
+      ],
+      "body": null,
+      "query": null,
+      "response": "PosLinkInfo",
+      "query_parameters": []
+    }
+  ],
+  "models": [
+    "Airline",
+    "AirlineLeg",
+    "AirlinePassenger",
+    "AuthorizationDetails",
+    "B2bSberbankCalculatedVatData",
+    "B2bSberbankMixedVatData",
+    "B2bSberbankPayerBankDetails",
+    "B2bSberbankUntaxedVatData",
+    "B2bSberbankVatData",
+    "BadRequest",
+    "BankCardData",
+    "BankCardProduct",
+    "BaseDeal",
+    "CardDataForPayoutDestination",
+    "CardRequestData",
+    "CardRequestDataWithCsc",
+    "Confirmation",
+    "ConfirmationData",
+    "ConfirmationDataEmbedded",
+    "ConfirmationDataExternal",
+    "ConfirmationDataMobileApplication",
+    "ConfirmationDataQr",
+    "ConfirmationDataRedirect",
+    "ConfirmationEmbedded",
+    "ConfirmationExternal",
+    "ConfirmationMobileApplication",
+    "ConfirmationQr",
+    "ConfirmationRedirect",
+    "CreateInvoiceRequest",
+    "CreatePaymentRequest",
+    "CreatePosLinkRequest",
+    "CreateWebhookRequest",
+    "DeliveryMethod",
+    "DeliveryMethodData",
+    "DeliveryMethodDataEmail",
+    "DeliveryMethodDataSelf",
+    "DeliveryMethodDataSms",
+    "DeliveryMethodEmail",
+    "DeliveryMethodSelf",
+    "DeliveryMethodSms",
+    "ElectronicCertificate",
+    "ElectronicCertificateApprovedPaymentArticle",
+    "ElectronicCertificateArticle",
+    "ElectronicCertificatePayment",
+    "ElectronicCertificatePaymentData",
+    "ElectronicCertificateRefundArticle",
+    "ElectronicCertificateRefundDataRequest",
+    "ElectronicCertificateRefundDataResponse",
+    "ElectronicCertificateRefundMethod",
+    "ElectronicCertificateRefundMethodData",
+    "Error",
+    "FiscalizationData",
+    "Forbidden",
+    "GetDealsQuery",
+    "GetDealsResponse",
+    "GetPaymentsQuery",
+    "GetPayoutsQuery",
+    "GetReceiptsQuery",
+    "GetReceiptsResponse",
+    "GetRefundsQuery",
+    "GetSbpBanksResponse",
+    "GetSettingsQuery",
+    "Gone",
+    "IncomeReceipt",
+    "IndustryDetails",
+    "InternalServerError",
+    "InvalidCredentials",
+    "Invoice",
+    "InvoiceCancellationDetails",
+    "InvoicingBankCardData",
+    "LineItem",
+    "MarkCodeInfo",
+    "MarkQuantity",
+    "Me",
+    "Metadata",
+    "MonetaryAmount",
+    "NotFound",
+    "OperationalDetails",
+    "Payment",
+    "PaymentCancellationDetails",
+    "PaymentCaptureRequest",
+    "PaymentCaptureRequestDeal",
+    "PaymentData",
+    "PaymentDealInfo",
+    "PaymentDetails",
+    "PaymentInvoiceDetails",
+    "PaymentList",
+    "PaymentMethod",
+    "PaymentMethodAlfaPay",
+    "PaymentMethodAlfabank",
+    "PaymentMethodApplePay",
+    "PaymentMethodB2bSberbank",
+    "PaymentMethodBankCard",
+    "PaymentMethodCash",
+    "PaymentMethodData",
+    "PaymentMethodDataAlfaPay",
+    "PaymentMethodDataB2bSberbank",
+    "PaymentMethodDataBankCard",
+    "PaymentMethodDataCash",
+    "PaymentMethodDataElectronicCertificate",
+    "PaymentMethodDataMobileBalance",
+    "PaymentMethodDataSberBnpl",
+    "PaymentMethodDataSberLoan",
+    "PaymentMethodDataSberbank",
+    "PaymentMethodDataSbp",
+    "PaymentMethodDataTinkoffBank",
+    "PaymentMethodDataYooMoney",
+    "PaymentMethodElectronicCertificate",
+    "PaymentMethodGooglePay",
+    "PaymentMethodInstallments",
+    "PaymentMethodMobileBalance",
+    "PaymentMethodQiwi",
+    "PaymentMethodSberBnpl",
+    "PaymentMethodSberLoan",
+    "PaymentMethodSberbank",
+    "PaymentMethodSbp",
+    "PaymentMethodTinkoffBank",
+    "PaymentMethodWeChat",
+    "PaymentMethodWebmoney",
+    "PaymentMethodYooMoney",
+    "PaymentMethodsConfirmation",
+    "PaymentMethodsConfirmationData",
+    "PaymentMethodsConfirmationDataQr",
+    "PaymentMethodsConfirmationDataRedirect",
+    "PaymentMethodsConfirmationQr",
+    "PaymentMethodsConfirmationRedirect",
+    "PaymentOrderBankUtilities",
+    "PaymentOrderData",
+    "PaymentOrderDataUtilities",
+    "PaymentOrderRecipientUtilities",
+    "PaymentOverviewStatementData",
+    "PaymentOverviewStatementDeliveryMethod",
+    "PaymentOverviewStatementEmailDeliveryMethod",
+    "PaymentPeriod",
+    "PaymentRecipient",
+    "Payout",
+    "PayoutCancellationDetails",
+    "PayoutCardData",
+    "PayoutDeal",
+    "PayoutDealInfo",
+    "PayoutDestination",
+    "PayoutDestinationData",
+    "PayoutRequest",
+    "PayoutSelfEmployed",
+    "PayoutSelfEmployedInfo",
+    "PayoutStatementRecipientPersonalDataRequest",
+    "PayoutToBankCardDestinationData",
+    "PayoutToCardDestination",
+    "PayoutToSbpDestination",
+    "PayoutToSbpDestinationData",
+    "PayoutToYooMoneyDestination",
+    "PayoutToYooMoneyDestinationData",
+    "PayoutsList",
+    "PayoutsPersonalData",
+    "PersonalData",
+    "PersonalDataCancellationDetails",
+    "PersonalDataRequest",
+    "PosLinkData",
+    "PosLinkInfo",
+    "PosLinkLastPayment",
+    "PosLinkPaymentData",
+    "PostReceiptData",
+    "PostReceiptDataItem",
+    "PostReceiptItemSupplierWithInn",
+    "Receipt",
+    "ReceiptAdditionalUserProps",
+    "ReceiptData",
+    "ReceiptDataCustomer",
+    "ReceiptDataItem",
+    "ReceiptItem",
+    "ReceiptItemSupplier",
+    "ReceiptItemSupplierWithInn",
+    "Receiver",
+    "ReceiverBankAccount",
+    "ReceiverDigitalWallet",
+    "ReceiverMobileBalance",
+    "Recipient",
+    "RecipientPosLinkRequest",
+    "Refund",
+    "RefundAuthorizationDetails",
+    "RefundCancellationDetails",
+    "RefundDealData",
+    "RefundDealInfo",
+    "RefundList",
+    "RefundMethod",
+    "RefundMethodData",
+    "RefundRequest",
+    "RefundSourcesData",
+    "RefundSourcesDataAmount",
+    "RefundSourcesDataPlatformFeeAmount",
+    "RuleViolationError",
+    "SafeDeal",
+    "SafeDealRequest",
+    "SavePaymentMethod",
+    "SavePaymentMethodBankCard",
+    "SavePaymentMethodBankCardHolder",
+    "SavePaymentMethodData",
+    "SavePaymentMethodDataBankCard",
+    "SavePaymentMethodDataSbp",
+    "SavePaymentMethodHolder",
+    "SavePaymentMethodSbp",
+    "SavePaymentMethodSbpHolder",
+    "SavePaymentMethodSbpPayerBankDetails",
+    "SbpParticipantBank",
+    "SbpPayerBankDetails",
+    "SbpPayoutRecipientPersonalDataRequest",
+    "SbpRefundMethod",
+    "SearchPayoutsQuery",
+    "Settlement",
+    "SettlementPaymentItem",
+    "SettlementPayoutPayment",
+    "SettlementPayoutRefund",
+    "SettlementRefundItem",
+    "Statement",
+    "ThreeDSecureDetails",
+    "TooManyRequests",
+    "Transfer",
+    "TransferAmount",
+    "TransferData",
+    "TransferDataAmount",
+    "TransferDataCapture",
+    "TransferDataCaptureAmount",
+    "TransferDataCapturePlatformFeeAmount",
+    "TransferDataPayment",
+    "TransferDataPaymentAmount",
+    "TransferDataPaymentPlatformFeeAmount",
+    "TransferDataPlatformFeeAmount",
+    "TransferPlatformFeeAmount",
+    "Webhook",
+    "WebhookList"
+  ]
+}
