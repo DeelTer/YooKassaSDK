@@ -6,7 +6,7 @@
 
     <groupId>ru.deelter.yookassa</groupId>
     <artifactId>YooKassaSDK</artifactId>
-    <version>2.0.0</version>
+    <version>2.0.1</version>
     <name>YooKassa SDK</name>
     <description>Unofficial synchronous Java client for the YooKassa API v3</description>
     <url>https://github.com/DeelTer/YooKassaSDK</url>

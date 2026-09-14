@@ -1,5 +1,7 @@
-# JitPack defaults to JDK 8, which does not support maven.compiler.release. Bytecode still targets Java 8.
+# JitPack's default JDK 8 does not support maven.compiler.release, and its preinstalled Maven is older
+# than the 3.6.3 that the build plugins require. The wrapper downloads the Maven version pinned in
+# .mvn/wrapper/maven-wrapper.properties. Bytecode still targets Java 8.
 jdk:
   - openjdk17
 install:
-  - mvn -B clean install -DskipTests
+  - bash ./mvnw -B clean install -DskipTests
