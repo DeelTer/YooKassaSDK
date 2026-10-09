@@ -8,6 +8,8 @@ import ru.deelter.yookassa.model.JsonModel;
 import ru.deelter.yookassa.model.*;
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Collections;
+
 import static org.junit.Assert.*;
 
 public class ModelsTest {
@@ -68,7 +70,7 @@ public class ModelsTest {
         ReceiptDataItem item = new ReceiptDataItem().setDescription("Product")
                 .setQuantity(new BigDecimal("0.250")).setMeasure("kilogram").setVatCode(12L)
                 .setAmount(new MonetaryAmount().setValue("100.00").setCurrency("RUB"));
-        ReceiptData receipt = new ReceiptData().setItems(Arrays.asList(item)).setTaxSystemCode(1L);
+        ReceiptData receipt = new ReceiptData().setItems(Collections.singletonList(item)).setTaxSystemCode(1L);
         RefundRequest refund = new RefundRequest().setPaymentId("payment")
                 .setAmount(new MonetaryAmount().setValue("25.00").setCurrency("RUB")).setReceipt(receipt);
         assertEquals(new BigDecimal("0.250"), refund.getReceipt().getItems().get(0).getQuantity());

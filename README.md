@@ -20,6 +20,7 @@ and OAuth webhook subscriptions. See the [operation table](docs/API_COVERAGE.md)
 - [Refunds, receipts and partial capture](#refunds-receipts-and-partial-capture)
 - [Pagination and filters](#pagination-and-filters)
 - [Models](#models)
+- [Validation](#validation)
 - [Error handling](#error-handling)
 - [Incoming notifications](#incoming-notifications)
 - [Webhook subscriptions (OAuth)](#webhook-subscriptions-oauth)
@@ -27,6 +28,7 @@ and OAuth webhook subscriptions. See the [operation table](docs/API_COVERAGE.md)
 - [Payouts and personal data](#payouts-and-personal-data)
 - [Threading and resources](#threading-and-resources)
 - [Migrating from 1.x](#migrating-from-1x)
+- [Changelog](#changelog)
 - [Development](#development)
 
 ## Installation
@@ -44,17 +46,17 @@ and OAuth webhook subscriptions. See the [operation table](docs/API_COVERAGE.md)
 <dependency>
     <groupId>com.github.DeelTer</groupId>
     <artifactId>YooKassaSDK</artifactId>
-    <version>2.0.2</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
-Gradle: `implementation("com.github.DeelTer:YooKassaSDK:2.0.2")`.
+Gradle: `implementation("com.github.DeelTer:YooKassaSDK:2.1.0")`.
 
 Always pin a release tag. `master-SNAPSHOT` or a commit hash follows ongoing development and
 may break without notice. Releases `1.0.0`–`1.0.6` stay available under their tags.
 
-> Tags `2.0.0` and `2.0.1` do not build on JitPack (incomplete build configuration). Use `2.0.2`:
-> the same code with a fixed build.
+> Tags `2.0.0` and `2.0.1` do not build on JitPack (incomplete build configuration).
+> Use `2.0.2` or later.
 
 ### Local build
 
@@ -68,7 +70,7 @@ The Maven Wrapper downloads Maven 3.9.9; a local Maven 3.6.3+ works as well.
 <dependency>
     <groupId>ru.deelter.yookassa</groupId>
     <artifactId>YooKassaSDK</artifactId>
-    <version>2.0.2</version>
+    <version>2.1.0</version>
 </dependency>
 ```
 
@@ -122,6 +124,7 @@ YooKassa api = YooKassa.builder()
         .readTimeout(Duration.ofSeconds(40))
         .callTimeout(Duration.ofSeconds(60))   // per attempt
         .retryPolicy(RetryPolicy.defaults())
+        .validateRequests(true)                // check request models before sending
         .build();
 ```
 
@@ -130,6 +133,7 @@ YooKassa api = YooKassa.builder()
 | `baseUrl` | `YooKassa.DEFAULT_BASE_URL` (`https://api.yookassa.ru/v3`) |
 | `connectTimeout` / `readTimeout` / `callTimeout` | 10 s / 40 s / 60 s |
 | `retryPolicy` | `RetryPolicy.none()` |
+| `validateRequests` / `validateResponses` | `false` / `false` (see [Validation](#validation)) |
 | `httpClient` | a new SDK-owned OkHttp client |
 
 Shortcuts: `YooKassa.create(shopId, secretKey)` and `YooKassa.oauth(token)`.
@@ -278,8 +282,47 @@ if (type != null && "bank_card".equals(type.getAsString())) {
 - Models are mutable and not thread-safe. Do not change a request between retries of one operation.
 - Parse stored JSON with `JsonUtil.fromJson(json, Payment.class)`.
 
-Models describe the wire format; they are not a complete validator. The API checks required
-fields, allowed combinations and store-specific rules.
+Models describe the wire format. Reading is tolerant by design: a field the specification marks
+as required can still be absent in a response, and its getter then returns `null`.
+
+## Validation
+
+**Numeric ranges are always enforced.** Fields with a documented `minimum` / `maximum` (for example
+`MarkQuantity.numerator` and `denominator` ≥ 1, `limit` 1–100, `vat_code` 1–12, `tax_system_code` 1–6)
+reject other values in both setters and getters with `ModelValidationException`. A zero denominator
+from a faulty response therefore fails at `getDenominator()` with a clear message instead of
+surfacing later as `ArithmeticException: / by zero` in your code. The raw value stays available
+through `getField(name)`.
+
+**`validate()` checks a whole object** against the specification, including nested objects and lists:
+
+```java
+List<String> problems = request.violations();
+// [amount.currency is required, receipt.items[0].mark_quantity.denominator must be at least 1]
+
+request.validate(); // throws ModelValidationException listing every problem
+```
+
+| Checked | Not checked |
+| --- | --- |
+| required fields | enum membership (YooKassa adds values without notice) |
+| numeric ranges | string patterns |
+| string lengths (in characters, as the API counts them) | polymorphic fields typed as `JsonModel` |
+| list sizes, JSON types of nested objects | business rules only the API can evaluate |
+
+Messages contain field paths and constraints, never field values, so they are safe to log.
+
+**The client can validate for you**, both options are off by default:
+
+- `validateRequests(true)` validates the body and query before sending. An invalid request throws
+  `ModelValidationException` without a network call. Recommended.
+- `validateResponses(true)` turns a 2xx response with missing required fields or out-of-range numbers
+  into `YooKassa.ResponseParseException`. Use it with care: the operation has already happened on the
+  server, and if YooKassa ever omits one documented field, whole objects become unreadable, including
+  a payment whose status you need. For money flows, prefer reading tolerantly and calling
+  `validate()` or checking the specific fields you depend on.
+
+Validation mirrors the pinned specification. It does not replace the API's own checks.
 
 ## Error handling
 
@@ -313,8 +356,9 @@ try {
 | `TooManyRequestsException` | HTTP 429 |
 | `ServerErrorException` | HTTP 5xx |
 | `YooKassaApiException` | base class, and any other non-2xx status |
-| `YooKassa.ResponseParseException` (`IOException`) | 2xx with a missing or malformed body |
+| `YooKassa.ResponseParseException` (`IOException`) | 2xx with a missing or malformed body, or failed `validateResponses(true)` |
 | `IOException` | network failure, timeout |
+| `ModelValidationException` (`IllegalArgumentException`) | a model value outside its documented range, `validate()`, or `validateRequests(true)` |
 | `IllegalArgumentException` / `NullPointerException` | invalid arguments, detected before sending |
 | `IllegalStateException` | a call on a closed client, or a builder without credentials |
 
@@ -430,6 +474,22 @@ New in 2.0.0: all 34 operations, retries, configurable base URL and timeouts, st
 exceptions with `retry_after`, typed dates and amounts, value constants, notification parsing and
 sender checks, a reference data cache, faster model access, and source and Javadoc JARs.
 
+## Changelog
+
+### 2.1.0
+
+- Getters and setters of numeric fields with a documented range now throw `ModelValidationException`
+  for values outside it (14 fields, for example `MarkQuantity.denominator` ≥ 1). Previously such values
+  passed through silently.
+- `JsonModel.validate()` and `violations()`; `YooKassa.builder().validateRequests(...)` and
+  `validateResponses(...)`.
+- Javadoc of generated getters states that "required" describes the specification, not a guarantee on read.
+- Generated sources carry `// @formatter:off` so IDE reformatting cannot drift from the generator.
+
+### 2.0.2
+
+- First 2.x release that builds on JitPack. Complete rewrite of 1.x; see [Migrating from 1.x](#migrating-from-1x).
+
 ## Development
 
 ```shell
@@ -452,6 +512,8 @@ git diff --exit-code -- src/main/java/ru/deelter/yookassa/model src/main/java/ru
 - `openapi/coverage.json` stores its SHA-256, operation signatures and model names.
 - A new API operation stops generation until a Java method name is added to `OPERATIONS` in the generator.
 - The generator does not delete files; remove models of deleted schemas manually.
+- Generated files start with `// @formatter:off`. `.editorconfig` enables formatter markers for IntelliJ,
+  so "Reformat code" leaves them untouched and the `git diff --exit-code` check stays meaningful.
 
 Python (standard library only) is needed only to regenerate sources.
 

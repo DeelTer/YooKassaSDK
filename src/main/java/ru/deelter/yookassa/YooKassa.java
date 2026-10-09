@@ -36,6 +36,8 @@ public final class YooKassa extends YooKassaOperations implements AutoCloseable 
 	private final HttpUrl baseUrl;
 	private final RetryPolicy retryPolicy;
 	private final boolean ownsClient;
+	private final boolean validateRequests;
+	private final boolean validateResponses;
 	private volatile boolean closed;
 
 	private YooKassa(Builder builder) {
@@ -44,6 +46,8 @@ public final class YooKassa extends YooKassaOperations implements AutoCloseable 
 		authorization = builder.authorization;
 		baseUrl = builder.baseUrl;
 		retryPolicy = builder.retryPolicy;
+		validateRequests = builder.validateRequests;
+		validateResponses = builder.validateResponses;
 		ownsClient = builder.httpClient == null;
 		client = configure(ownsClient ? new OkHttpClient() : builder.httpClient, builder, ownsClient);
 	}
@@ -122,6 +126,10 @@ public final class YooKassa extends YooKassaOperations implements AutoCloseable 
 	<T> T execute(HttpMethod method, String[] path, JsonModel query, JsonModel body, String key, Class<T> responseType)
 		throws IOException {
 		if (closed) throw new IllegalStateException("YooKassa client is closed");
+		if (validateRequests) {
+			if (query != null) query.validate();
+			if (body != null) body.validate();
+		}
 		HttpUrl url = RequestEncoding.url(baseUrl, path, query);
 		byte[] payload = body != null ? body.toJson().getBytes(StandardCharsets.UTF_8) : method == HttpMethod.POST ? EMPTY_OBJECT : null;
 		Request.Builder builder = new Request.Builder()
@@ -166,6 +174,11 @@ public final class YooKassa extends YooKassaOperations implements AutoCloseable 
 			try {
 				T result = JsonUtil.fromJson(responseBody.string(), responseType);
 				if (result == null) throw new ResponseParseException("Empty API response body", null);
+				if (validateResponses && result instanceof JsonModel) {
+					java.util.List<String> problems = ((JsonModel) result).violations();
+					if (!problems.isEmpty())
+						throw new ResponseParseException("API response violates the specification: " + String.join("; ", problems), null);
+				}
 				return result;
 			} catch (com.google.gson.JsonParseException | IllegalStateException e) {
 				throw new ResponseParseException("Invalid API response JSON", e);
@@ -174,7 +187,8 @@ public final class YooKassa extends YooKassaOperations implements AutoCloseable 
 	}
 
 	/**
-	 * A 2xx response whose body could not be read as the expected object; never retried.
+	 * A 2xx response whose body could not be read as the expected object, or that failed
+	 * {@link Builder#validateResponses(boolean) response validation}; never retried.
 	 */
 	public static final class ResponseParseException extends IOException {
 		ResponseParseException(String message, Throwable cause) {
@@ -193,6 +207,8 @@ public final class YooKassa extends YooKassaOperations implements AutoCloseable 
 		private Duration readTimeout;
 		private Duration callTimeout;
 		private RetryPolicy retryPolicy = RetryPolicy.none();
+		private boolean validateRequests;
+		private boolean validateResponses;
 
 		private Builder() {
 		}
@@ -263,6 +279,26 @@ public final class YooKassa extends YooKassaOperations implements AutoCloseable 
 
 		public Builder retryPolicy(RetryPolicy retryPolicy) {
 			this.retryPolicy = Objects.requireNonNull(retryPolicy, "retryPolicy");
+			return this;
+		}
+
+		/**
+		 * Checks every request model against the specification before sending and throws
+		 * {@code ModelValidationException} instead of making a call the API would reject. Off by default.
+		 */
+		public Builder validateRequests(boolean validateRequests) {
+			this.validateRequests = validateRequests;
+			return this;
+		}
+
+		/**
+		 * Rejects a 2xx response that lacks required fields or has out-of-range values with
+		 * {@link ResponseParseException}. Off by default, and deliberately so: with it on, an API change
+		 * that drops one field makes whole objects unreadable, including a payment whose status you need.
+		 * The operation itself has already happened on the server when this error is thrown.
+		 */
+		public Builder validateResponses(boolean validateResponses) {
+			this.validateResponses = validateResponses;
 			return this;
 		}
 
